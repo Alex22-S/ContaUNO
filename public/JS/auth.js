@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // FORZANDO LA ACTUALIZACIÓN PARA PRODUCCIÓN
+    
     // Si el usuario ya tiene una sesión, lo mandamos a la app principal
     if (sessionStorage.getItem('contaunoUser')) {
         window.location.href = 'index.html';
