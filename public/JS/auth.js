@@ -1,6 +1,5 @@
+// FORZANDO LA ACTUALIZACIÓN PARA PRODUCCIÓN (Puedes borrar esta línea si quieres)
 document.addEventListener('DOMContentLoaded', () => {
-    // FORZANDO LA ACTUALIZACIÓN PARA PRODUCCIÓN
-    
     // Si el usuario ya tiene una sesión, lo mandamos a la app principal
     if (sessionStorage.getItem('contaunoUser')) {
         window.location.href = 'index.html';
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorDisplay.textContent = '';
 
             try {
-                // ===== CORRECCIÓN 1 =====
+                // ===== URL CORREGIDA 1 =====
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -84,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     document.addEventListener('keydown', (e) => {
-        if (e.key === "Escape" && signupModal.classList.contains('active')) {
+        if (e.key === "Escape" && signupModal && signupModal.classList.contains('active')) {
             closeModal();
         }
     });
@@ -118,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                // ===== CORRECCIÓN 2 =====
+                // ===== URL CORREGIDA 2 =====
                 const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
