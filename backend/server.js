@@ -9,7 +9,7 @@ const { open } = require('sqlite');
 
 // 2. CONFIGURACIÓN INICIAL DEL SERVIDOR
 const app = express();
-const PORT = 3000; // El puerto donde nuestro servidor "escuchará"
+const PORT = process.env.PORT || 3000; // El puerto donde nuestro servidor "escuchará"
 
 // Middlewares: "Plugins" que ayudan a nuestro servidor a funcionar
 app.use(cors());           // Permite que tu página web se comunique con este servidor
