@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrarse - ContaUNO</title>
+    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="CSS/login.css">
+</head>
+<body>
+    <div class="floating-elements" id="floatingElements"></div>
+
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">ContaUNO</div>
+            <div class="nav-links">
+                <div class="theme-switcher">
+                    <input type="checkbox" id="theme-toggle">
+                    <label for="theme-toggle">
+                        <span class="sun">☀️</span>
+                        <span class="moon">🌙</span>
+                    </label>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="login-container">
+        <div class="login-card">
+            <h1 class="login-title">Crear Cuenta</h1>
+            <p class="login-subtitle">Únete a ContaUNO para gestionar tu contabilidad</p>
+            
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-username">Nombre de Usuario</label>
+                    <input type="text" id="signup-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Contraseña</label>
+                    <input type="password" id="signup-password" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password-confirm">Confirmar Contraseña</label>
+                    <input type="password" id="signup-password-confirm" required>
+                </div>
+                <p id="signup-error" class="error-message"></p>
+                <button type="submit" class="login-btn">Registrarse</button>
+            </form>
+
+            <div class="login-footer">
+                <p>¿Ya tienes una cuenta? <a href="login.html">Inicia Sesión</a></p>
+            </div>
+        </div>
+    </main>
+
+    <script src="JS/signup.js"></script>
+</body>
+</html>

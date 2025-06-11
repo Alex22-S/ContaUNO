@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContaUNO - Contabilidad Inteligente</title>
+    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="CSS/calendar.css">
+    <link rel="stylesheet" href="CSS/form.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.min.js"></script>
+</head>
+<body>
+    <div class="floating-elements" id="floatingElements"></div>
+    
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">ContaUNO</div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Inicio</a>
+                <a href="#" class="nav-link">Características</a>
+                <a href="#" class="nav-link">Precios</a>
+                <a href="#" class="nav-link">Soporte</a>
+                <div class="theme-switcher">
+                    <input type="checkbox" id="theme-toggle">
+                    <label for="theme-toggle">
+                        <span class="sun">☀️</span>
+                        <span class="moon">🌙</span>
+                    </label>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="hero" id="hero">
+        <h1 class="hero-title">ContaUNO</h1>
+        <p class="hero-subtitle">Selecciona el modo que mejor se adapte a tus necesidades empresariales</p>
+        
+        <div class="level-selector">
+            <div class="level-card basic" onclick="showDashboard('basic')">
+                <div class="level-icon">🌱</div>
+                <h3 class="level-title">Contabilidad Básica</h3>
+                <p class="level-description">Perfecto para emprendedores y pequeños negocios. Funciones simples y guiadas paso a paso.</p>
+            </div>
+            
+            <div class="level-card intermediate" onclick="showDashboard('intermediate')">
+                <div class="level-icon">📊</div>
+                <h3 class="level-title">Contabilidad Media</h3>
+                <p class="level-description">Para empresas en crecimiento. Herramientas intermedias con análisis detallados.</p>
+            </div>
+            
+            <div class="level-card advanced" onclick="showDashboard('advanced')">
+                <div class="level-icon">🚀</div>
+                <h3 class="level-title">Contabilidad Avanzada</h3>
+                <p class="level-description">Para contadores profesionales. Funciones complejas y análisis profundos.</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="calendar-view" id="calendar-view">
+        <button class="back-btn" onclick="showDashboard('basic')">← Volver al Dashboard</button>
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h2 class="calendar-main-title">Registro de Transacciones</h2>
+                <div class="calendar-controls">
+                    <select id="month-select" onchange="updateCalendar()">
+                        <option value="0">Enero</option>
+                        <option value="1">Febrero</option>
+                        <option value="2">Marzo</option>
+                        <option value="3">Abril</option>
+                        <option value="4">Mayo</option>
+                        <option value="5">Junio</option>
+                        <option value="6">Julio</option>
+                        <option value="7">Agosto</option>
+                        <option value="8">Septiembre</option>
+                        <option value="9">Octubre</option>
+                        <option value="10">Noviembre</option>
+                        <option value="11">Diciembre</option>
+                    </select>
+                    <select id="year-select" onchange="updateCalendar()"></select>
+                </div>
+            </div>
+            
+            <div class="calendar-content">
+                <div class="calendar-grid-container">
+                    <div class="calendar-grid" id="calendar-grid">
+                        <div class="calendar-day-header">Lun</div>
+                        <div class="calendar-day-header">Mar</div>
+                        <div class="calendar-day-header">Mié</div>
+                        <div class="calendar-day-header">Jue</div>
+                        <div class="calendar-day-header">Vie</div>
+                        <div class="calendar-day-header">Sáb</div>
+                        <div class="calendar-day-header">Dom</div>
+                    </div>
+                </div>
+
+                <div class="calendar-summary">
+                    <h3 class="summary-title">Resumen del Mes</h3>
+                    <div class="summary-card income">
+                        <div class="summary-info">
+                            <span class="summary-label">Ingresos</span>
+                            <span class="summary-value" id="monthly-income">$0</span>
+                        </div>
+                    </div>
+                    <div class="summary-card expense">
+                        <div class="summary-info">
+                            <span class="summary-label">Gastos</span>
+                            <span class="summary-value" id="monthly-expenses">$0</span>
+                        </div>
+                    </div>
+                    <div class="summary-card balance">
+                         <div class="summary-info">
+                            <span class="summary-label">Balance</span>
+                            <span class="summary-value" id="monthly-balance">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-view" id="form-view">
+        <div class="form-page-layout">
+            <div class="form-wrapper">
+                <div class="form-header-full">
+                    <h2 id="form-title">Registrar Movimiento</h2>
+                    <button class="back-btn-form" onclick="showCalendar()">← Volver al Calendario</button>
+                </div>
+                <form id="transaction-form-full">
+                    <input type="hidden" id="editing-transaction-id">
+
+                    <div class="form-group template-group">
+                        <label for="template-select">Aplicar Plantilla</label>
+                        <div class="template-manager">
+                            <select id="template-select">
+                                <option value="">-- Selecciona una plantilla --</option>
+                            </select>
+                            <button type="button" id="edit-template-btn" title="Renombrar Plantilla Seleccionada">✏️</button>
+                            <button type="button" id="delete-template-btn" title="Eliminar Plantilla Seleccionada">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label for="form-date-display">Fecha</label>
+                                <input type="text" id="form-date-display" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-type">Tipo de Movimiento</label>
+                                <select id="form-type" required>
+                                    <option value="income">💰 Ingreso</option>
+                                    <option value="expense">💸 Gasto</option>
+                                </select>
+                            </div>
+                            <div class="form-group category-group">
+                                <label for="form-category">Categoría</label>
+                                <div class="category-manager">
+                                    <select id="form-category" required></select>
+                                    <button type="button" id="add-category-btn" title="Añadir Categoría">➕</button>
+                                    <button type="button" id="edit-category-btn" title="Editar Categoría Seleccionada">✏️</button>
+                                    <button type="button" id="delete-category-btn" title="Eliminar Categoría Seleccionada">🗑️</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-amount">Monto</label>
+                                <input type="number" id="form-amount" step="0.01" min="0" required placeholder="1.250.000,00">
+                            </div>
+                        </div>
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label for="form-description">Descripción Corta</label>
+                                <input type="text" id="form-description" required placeholder="Ej: Venta de mercancía, pago de arriendo...">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-provider">Proveedor / Cliente (Opcional)</label>
+                                <input type="text" id="form-provider" placeholder="Nombre del tercero">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-provider-id">NIT / C.C. (Opcional)</label>
+                                <input type="text" id="form-provider-id" placeholder="Número de identificación">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-notes">Notas / Observaciones (Opcional)</label>
+                                <textarea id="form-notes" rows="2" placeholder="Detalles adicionales del movimiento..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions-full">
+                        <button type="submit" class="save-btn" id="save-transaction-btn">💾 Guardar Transacción</button>
+                        <button type="button" class="template-btn" id="save-template-btn">⭐ Guardar Plantilla</button>
+                        <button type="button" class="cancel-btn" onclick="clearFormAndReturn()">❌ Cancelar / Volver</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="daily-summary-panel">
+                <div class="daily-summary-header">
+                    <h3>Movimientos del Día</h3>
+                    <button id="download-pdf-btn" class="pdf-btn" title="Descargar Resumen en PDF">📄 PDF</button>
+                </div>
+                <div class="daily-transactions-list" id="daily-transactions-list">
+                    <p class="no-transactions-msg">No hay movimientos registrados para este día.</p>
+                </div>
+                <div class="daily-summary-footer">
+                    <div class="footer-item">
+                        <span>Ingresos:</span>
+                        <span id="daily-income" class="positive-value">$0</span>
+                    </div>
+                    <div class="footer-item">
+                        <span>Gastos:</span>
+                        <span id="daily-expenses" class="negative-value">$0</span>
+                    </div>
+                     <div class="footer-item total">
+                        <span>Balance del Día:</span>
+                        <span id="daily-balance">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dashboard" id="basic-dashboard">
+        <button class="back-btn" onclick="showHero()">← Volver</button>
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">Contabilidad Básica</h2>
+            <p>Herramientas simples para empezar tu negocio</p>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Buscar función..." onkeyup="filterFunctions(this.value, 'basic')">
+        </div>
+        
+        <div class="functions-grid" id="basic-functions">
+            <div class="function-card" onclick="showCalendar()">
+                <h4 class="function-title">Registro de Ingresos y Gastos</h4>
+                <p class="function-description">Registra y controla todas tus entradas y salidas de dinero en un solo lugar.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Balance Simple</h4>
+                <p class="function-description">Ve cuánto tienes vs cuánto debes de forma clara.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Facturas Básicas</h4>
+                <p class="function-description">Crea facturas profesionales en minutos.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Control de Inventario</h4>
+                <p class="function-description">Gestiona tu stock de productos básicos.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Registro de ahorros</h4>
+                <p class="function-description">Registra tus ahorros y metas.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Flujo de Caja</h4>
+                <p class="function-description">Visualiza el dinero que entra y sale.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Recordatorios</h4>
+                <p class="function-description">No olvides fechas importantes de pagos.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Backup Automático</h4>
+                <p class="function-description">Tus datos siempre seguros en la nube.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard" id="intermediate-dashboard">
+        <button class="back-btn" onclick="showHero()">← Volver</button>
+    </div>
+
+    <div class="dashboard" id="advanced-dashboard">
+        <button class="back-btn" onclick="showHero()">← Volver</button>
+    </div>
+
+    <script src="JS/scripts.js"></script>
+    <script src="JS/calendar.js"></script>
+</body>
+</html>

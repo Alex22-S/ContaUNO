@@ -1,0 +1,281 @@
+/* === ESTILOS DEL NUEVO CALENDARIO INTEGRADO === */
+
+.calendar-view {
+    display: none; /* Oculto por defecto */
+    padding: 100px 2rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.calendar-view.active {
+    display: block;
+}
+
+.calendar-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.calendar-main-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    flex-grow: 1;
+}
+
+.calendar-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.calendar-controls select {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.calendar-controls select:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    box-shadow: var(--input-focus-shadow);
+}
+
+.calendar-content {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr;
+    gap: 2rem;
+}
+
+.calendar-grid-container {
+    overflow: hidden;
+    background: var(--card-bg); /* Color de fondo para la grilla */
+    border-radius: 15px; /* Bordes redondeados para la grilla */
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px; /* Espacio entre celdas que formará las líneas */
+    background-color: var(--card-border); /* Color de las líneas */
+    border: 1px solid var(--card-border); /* Borde exterior */
+    overflow: hidden;
+    border-radius: 15px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-weight: 700; /* NUEVO: Color y grosor para resaltar */
+    color: var(--input-focus-border); /* NUEVO: Color y grosor para resaltar */
+    padding: 0.75rem 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    background-color: var(--card-bg);
+}
+
+.calendar-day {
+    background: var(--card-bg);
+    min-height: 100px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-left-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border-left: 4px solid transparent; /* Espacio para el indicador de color */
+}
+
+.calendar-day:hover {
+    background: var(--input-bg);
+    transform: scale(1.02);
+    z-index: 10;
+}
+
+.calendar-day.other-month {
+    opacity: 0.5;
+    background: rgba(0,0,0,0.1);
+    cursor: default;
+}
+body.light-mode .calendar-day.other-month {
+    background: rgba(0,0,0,0.02);
+}
+
+.calendar-day.other-month:hover {
+    background: rgba(0,0,0,0.1);
+    transform: none;
+}
+body.light-mode .calendar-day.other-month:hover {
+    background: rgba(0,0,0,0.02);
+}
+
+.calendar-day.today {
+    background: linear-gradient(45deg, rgba(0, 212, 255, 0.1), rgba(124, 58, 237, 0.1));
+}
+
+.calendar-day.today .day-number {
+    border: 1px solid var(--input-focus-border);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* === NUEVOS ESTILOS PARA BALANCE DIARIO === */
+.calendar-day.day-positive-balance {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-left-color: #10b981;
+}
+.calendar-day.day-positive-balance:hover {
+    background-color: rgba(16, 185, 129, 0.2);
+}
+
+.calendar-day.day-negative-balance {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+}
+.calendar-day.day-negative-balance:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+
+.day-number {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.day-transactions {
+    font-size: 0.85rem; /* Ajustado para que quepa mejor */
+    font-weight: 700;
+    line-height: 1.5;
+    margin-top: auto;
+    align-self: flex-end;
+    text-align: right;
+}
+
+/* === NUEVO: Colores para el texto del balance diario === */
+.day-transactions.positive {
+    color: #10b981;
+}
+.day-transactions.negative {
+    color: #ef4444;
+}
+
+
+/* === RESUMEN DEL CALENDARIO === */
+
+.calendar-summary {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+body.light-mode .calendar-summary {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.summary-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 1rem;
+}
+
+.summary-card {
+    background: var(--card-bg);
+    padding: 1.2rem;
+    border-radius: 10px;
+    border-left: 4px solid;
+    transition: transform 0.3s ease;
+}
+.summary-card:hover {
+    transform: translateX(5px);
+}
+
+.summary-card.income { border-color: #10b981; }
+.summary-card.expense { border-color: #ef4444; }
+.summary-card.balance { border-color: var(--input-focus-border); }
+
+.summary-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.summary-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.summary-card.income .summary-value { color: #10b981; }
+.summary-card.expense .summary-value { color: #ef4444; }
+.summary-card.balance .summary-value.positive { color: #10b981; }
+.summary-card.balance .summary-value.negative { color: #ef4444; }
+
+/* === ESTILOS RESPONSIVOS === */
+
+@media (max-width: 1024px) {
+    .calendar-content {
+        grid-template-columns: 1fr;
+    }
+    .calendar-summary {
+        order: -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        gap: 1rem;
+    }
+    .summary-card {
+        flex-grow: 1;
+        flex-basis: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-view { padding: 80px 1rem 1rem; }
+    .calendar-container { padding: 1.5rem; }
+    .calendar-header { flex-direction: column; }
+    .calendar-main-title { font-size: 1.5rem; text-align: center; }
+    .calendar-controls { width: 100%; justify-content: space-between; }
+    .calendar-controls select { flex: 1; }
+    .calendar-day { min-height: 90px;}
+}
+
+@media (max-width: 480px) {
+    .day-transactions {
+      font-size: 0.75rem;
+    }
+    .calendar-day {
+        min-height: 70px;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+}
