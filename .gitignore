@@ -1,0 +1,9 @@
+# Ignorar la carpeta de dependencias de Node.js de CUALQUIER subcarpeta
+**/node_modules
+
+# Ignorar el archivo de la base de datos para no subir datos de prueba
+*.db
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
