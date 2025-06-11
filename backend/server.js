@@ -8,38 +8,30 @@ const path = require('path');
 
 // --- Configuración Inicial ---
 const app = express();
-// Usa el puerto que Render te da, o el 3000 si estás en tu PC
 const PORT = process.env.PORT || 3000;
 
 // --- Middlewares ---
 app.use(cors());
 app.use(express.json());
 
+// --- Configuración de Archivos Estáticos ---
 
-// ===================================================================
-// ===== ESTE ES EL ORDEN CORRECTO Y LA SOLUCIÓN DEFINITIVA ========
-// ===================================================================
-
-// 1. LA REDIRECCIÓN DE LA RUTA RAÍZ VA PRIMERO
-// Así, esta es la primera regla que Express revisa.
+// 1. Redirección de la ruta raíz
 app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
 
-// 2. SERVIR LOS ARCHIVOS ESTÁTICOS VA DESPUÉS
-// Si la ruta no era '/', Express buscará en la carpeta 'public'.
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ===================================================================
-// ===================================================================
-
+// 2. Servir los archivos estáticos desde la carpeta /public
+//    Se usa '..' para subir un nivel desde /backend a la raíz del proyecto.
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // --- Conexión a la Base de Datos ---
 let db;
 (async () => {
-    // La base de datos se creará en la raíz del proyecto
+    // Apunta a la base de datos en el directorio raíz del proyecto
+    const dbPath = path.join(__dirname, '..', 'database.db');
     db = await open({
-        filename: './database.db',
+        filename: dbPath,
         driver: sqlite3.Database
     });
     console.log('Conectado a la base de datos SQLite.');
@@ -73,7 +65,6 @@ let db;
 })();
 
 // --- RUTAS DE LA API ---
-
 app.post('/api/signup', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -87,6 +78,7 @@ app.post('/api/signup', async (req, res) => {
         res.status(409).json({ message: 'El nombre de usuario ya existe.' });
     }
 });
+
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
@@ -95,8 +87,6 @@ app.post('/api/login', async (req, res) => {
     }
     res.json({ message: 'Login exitoso', userId: user.id, username: user.username });
 });
-// (Aquí irían tus otras rutas de transacciones, etc. si las tuvieras)
-
 
 // --- Iniciar el servidor ---
 app.listen(PORT, () => {
