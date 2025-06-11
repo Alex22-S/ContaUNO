@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
             errorDisplay.textContent = '';
 
             try {
-                const response = await fetch('http://localhost:3000/api/login', {
+                // ===== CORRECCIÓN 1 =====
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -58,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = document.getElementById('close-modal-btn');
     const signupFormModal = document.getElementById('signup-form-modal');
 
-    // 1. Al hacer clic en "Regístrate", MOSTRAMOS la ventana modal
     if (signupLink) {
         signupLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -66,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. Función para CERRAR la ventana modal
     function closeModal() {
         if (signupModal) {
             signupModal.classList.remove('active');
@@ -87,8 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }
     });
-
-    // 3. Al enviar el FORMULARIO DENTRO DE LA MODAL
+    
     if (signupFormModal) {
         signupFormModal.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -118,7 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/signup', {
+                // ===== CORRECCIÓN 2 =====
+                const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -127,9 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.status === 201) {
-                    // ===== AQUÍ ESTÁ EL CAMBIO =====
                     alert("¡Usuario registrado con éxito! Serás redirigido para iniciar sesión.");
-                    window.location.href = 'login.html'; // Redirige a la página de login
+                    window.location.href = 'login.html';
                 } else {
                     errorDisplayModal.textContent = data.message;
                 }
