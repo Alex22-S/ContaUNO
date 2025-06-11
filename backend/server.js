@@ -8,25 +8,26 @@ const path = require('path');
 
 // --- Configuración Inicial ---
 const app = express();
+// Usa el puerto que Render te da, o el 3000 si estás en tu PC
 const PORT = process.env.PORT || 3000;
 
 // --- Middlewares ---
 app.use(cors());
 app.use(express.json());
 
+
 // ===================================================================
-// ===== ESTA ES LA REORGANIZACIÓN FINAL Y LA SOLUCIÓN =============
+// ===== ESTE ES EL ORDEN CORRECTO Y LA SOLUCIÓN DEFINITIVA ========
 // ===================================================================
 
-// 1. REGLA DE REDIRECCIÓN PRINCIPAL (AHORA VA PRIMERO)
-// Cuando alguien visite la URL raíz, lo redirigimos a la página de login.
+// 1. LA REDIRECCIÓN DE LA RUTA RAÍZ VA PRIMERO
+// Así, esta es la primera regla que Express revisa.
 app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
 
-// 2. SERVIR ARCHIVOS ESTÁTICOS (AHORA VA SEGUNDO)
-// Para todas las demás peticiones (como /login.html, /css/style.css, etc.),
-// Express buscará en la carpeta 'public'.
+// 2. SERVIR LOS ARCHIVOS ESTÁTICOS VA DESPUÉS
+// Si la ruta no era '/', Express buscará en la carpeta 'public'.
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ===================================================================
@@ -56,13 +57,23 @@ let db;
             amount REAL NOT NULL,
             description TEXT NOT NULL,
             category TEXT,
+            provider TEXT,
+            providerId TEXT,
+            notes TEXT,
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            userId INTEGER NOT NULL,
+            type TEXT NOT NULL,
+            name TEXT NOT NULL,
             FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
         );
     `);
 })();
 
 // --- RUTAS DE LA API ---
-// (Estas no cambian)
+
 app.post('/api/signup', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -84,7 +95,7 @@ app.post('/api/login', async (req, res) => {
     }
     res.json({ message: 'Login exitoso', userId: user.id, username: user.username });
 });
-// ... (aquí irían el resto de tus rutas de la API, como las de transacciones, etc.)
+// (Aquí irían tus otras rutas de transacciones, etc. si las tuvieras)
 
 
 // --- Iniciar el servidor ---
