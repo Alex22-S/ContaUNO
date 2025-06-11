@@ -410,3 +410,27 @@ body.light-mode .form-group input[readonly] {
         flex-direction: column;
     }
 }
+
+/* =================================================== */
+/* === CORRECCIÓN PARA VISIBILIDAD EN MODO OSCURO === */
+/* =================================================== */
+
+/*
+ * Asegura que los desplegables (select) y sus opciones (option)
+ * sean legibles tanto en modo oscuro como en modo claro,
+ * solucionando problemas de visibilidad en algunos navegadores.
+ */
+
+/* Estilo para las opciones del desplegable en el modo por defecto (oscuro) */
+.form-group select option {
+    /* Usamos un color de fondo sólido del tema oscuro para evitar problemas con transparencias */
+    background: #1a1a3e; 
+    color: #ffffff;
+}
+
+/* Estilo para las opciones del desplegable en modo claro */
+body.light-mode .form-group select option {
+    /* Usamos un color de fondo sólido y texto oscuro para el modo claro */
+    background: #ffffff;
+    color: #1e293b;
+}

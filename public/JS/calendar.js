@@ -499,17 +499,28 @@ function updateSummary() {
     balanceEl.classList.add(balance >= 0 ? 'positive' : 'negative');
 }
 
-// === FUNCIÓN PARA GENERAR PDF ===
+// === FUNCIÓN PARA GENERAR PDF (CORREGIDA Y MEJORADA) ===
 function generateDailyPdf() {
+    // 1. VERIFICACIÓN: Asegurarse de que las librerías jsPDF y autoTable estén cargadas.
+    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+        console.error("La librería jsPDF no se ha cargado correctamente.");
+        alert("Error: No se pudo cargar la funcionalidad PDF. Revisa la conexión a internet o contacta a soporte.");
+        return;
+    }
+    // La librería autoTable se añade al prototipo de jsPDF, por lo que no es necesario verificarla por separado.
+
     const { jsPDF } = window.jspdf;
     const dailyTransactions = transactions[selectedDate] || [];
 
     if (dailyTransactions.length === 0) {
-        alert("No hay transacciones para generar un PDF.");
+        alert("No hay movimientos para generar un PDF en esta fecha.");
         return;
     }
 
+    // 2. CREACIÓN DEL DOCUMENTO
     const doc = new jsPDF();
+    
+    // 3. DATOS PARA LA TABLA
     const head = [['Descripción', 'Categoría', 'Tipo', 'Monto']];
     const body = dailyTransactions.map(t => [
         t.description,
@@ -518,6 +529,7 @@ function generateDailyPdf() {
         formatCurrency(t.amount)
     ]);
     
+    // 4. CÁLCULOS DEL RESUMEN
     let totalIncome = 0;
     let totalExpenses = 0;
     dailyTransactions.forEach(t => {
@@ -526,11 +538,13 @@ function generateDailyPdf() {
     });
     const totalBalance = totalIncome - totalExpenses;
 
+    // 5. CONSTRUCCIÓN DEL PDF
     doc.setFontSize(20);
     doc.text("Resumen de Movimientos", 14, 22);
     doc.setFontSize(12);
     doc.text(`Fecha: ${formatDateForDisplay(selectedDate)}`, 14, 30);
 
+    // autoTable generará la tabla
     doc.autoTable({
         startY: 40,
         head: head,
@@ -538,19 +552,23 @@ function generateDailyPdf() {
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 186], textColor: 255 },
         styles: { halign: 'center' },
-        columnStyles: { 3: { halign: 'right' } }
+        columnStyles: { 3: { halign: 'right' } } // Alinear montos a la derecha
     });
 
-    const finalY = doc.lastAutoTable.finalY + 15;
+    // Añadir el resumen final debajo de la tabla
+    const finalY = doc.lastAutoTable.finalY || 80; // Usar la posición final de la tabla
     doc.setFontSize(14);
-    doc.text("Resumen del Día", 14, finalY);
+    doc.text("Resumen del Día", 14, finalY + 15);
+    
     doc.setFontSize(10);
-    doc.text(`Total Ingresos: ${formatCurrency(totalIncome)}`, 14, finalY + 8);
-    doc.text(`Total Gastos: ${formatCurrency(totalExpenses)}`, 14, finalY + 16);
+    doc.text(`Total Ingresos: ${formatCurrency(totalIncome)}`, 14, finalY + 23);
+    doc.text(`Total Gastos: ${formatCurrency(totalExpenses)}`, 14, finalY + 31);
+    
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text(`Balance: ${formatCurrency(totalBalance)}`, 14, finalY + 24);
+    doc.text(`Balance del Día: ${formatCurrency(totalBalance)}`, 14, finalY + 40);
 
+    // 6. GUARDAR EL DOCUMENTO
     doc.save(`Resumen_${selectedDate}.pdf`);
 }
 
