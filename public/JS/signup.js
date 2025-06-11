@@ -38,7 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/signup', {
+                // --- LÍNEA CORREGIDA ---
+                // Se cambia la URL absoluta por una ruta relativa para que funcione en producción.
+                const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
