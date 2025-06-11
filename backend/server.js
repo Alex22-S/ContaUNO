@@ -124,6 +124,12 @@ app.delete('/api/transactions/:transactionId', async (req, res) => {
     res.status(200).json({ message: 'Transacción eliminada' });
 });
 
+// ===== CÓDIGO NUEVO QUE DEBES AÑADIR =====
+// Ruta raíz: Cuando alguien visite la URL principal, lo redirigimos a la página de login.
+app.get('/', (req, res) => {
+    res.redirect('/login.html');
+});
+// =========================================
 
 // 5. INICIAMOS EL SERVIDOR
 app.listen(PORT, () => {
