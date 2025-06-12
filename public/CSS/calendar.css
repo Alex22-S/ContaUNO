@@ -56,6 +56,20 @@
     min-width: 120px;
 }
 
+/* === CORRECCIÓN 1: Estilos para las opciones del selector en modo oscuro === */
+/* Nota: La compatibilidad puede variar entre navegadores. */
+.calendar-controls select option {
+    background: #1a1a3e; /* Un color oscuro del fondo de tu paleta */
+    color: #ffffff;
+}
+
+body.light-mode .calendar-controls select option {
+    background: #ffffff; /* Fondo blanco para modo claro */
+    color: #1e293b;   /* Texto oscuro para modo claro */
+}
+/* === FIN DE LA CORRECCIÓN 1 === */
+
+
 .calendar-controls select:focus {
     outline: none;
     border-color: var(--input-focus-border);
@@ -242,12 +256,19 @@ body.light-mode .calendar-summary {
 
 /* === ESTILOS RESPONSIVOS === */
 
+/* === CORRECCIÓN 2: Se cambia a Flexbox para apilar los elementos correctamente === */
 @media (max-width: 1024px) {
     .calendar-content {
-        grid-template-columns: 1fr;
+        /* Se cambia de grid a flex para apilar verticalmente */
+        display: flex;
+        flex-direction: column;
     }
     .calendar-summary {
-        order: -1;
+        /* El order: -1; ya no es necesario, pero lo podemos dejar si quieres que el resumen vaya arriba */
+        /* Si quieres el resumen abajo (lo más común), simplemente elimina la propiedad order */
+        order: -1; 
+        
+        /* Estas propiedades son para distribuir las tarjetas de resumen horizontalmente */
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: space-around;
@@ -255,9 +276,11 @@ body.light-mode .calendar-summary {
     }
     .summary-card {
         flex-grow: 1;
-        flex-basis: 200px;
+        flex-basis: 200px; /* Las tarjetas tendrán una base de 200px y crecerán para ocupar el espacio */
     }
 }
+/* === FIN DE LA CORRECCIÓN 2 === */
+
 
 @media (max-width: 768px) {
     .calendar-view { padding: 80px 1rem 1rem; }
