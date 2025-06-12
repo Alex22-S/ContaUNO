@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/calendar.css">
     <link rel="stylesheet" href="CSS/form.css">
+    <link rel="stylesheet" href="CSS/balance.css"> 
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="floating-elements" id="floatingElements"></div>
@@ -220,6 +222,67 @@
             </div>
         </div>
     </div>
+    
+    <div class="balance-view" id="balance-view">
+        <button class="back-btn" onclick="showDashboard('basic')">← Volver al Dashboard</button>
+
+        <div class="balance-container">
+            <div class="balance-header">
+                <h2 class="balance-main-title">Balance Simple</h2>
+                <div class="balance-controls">
+                    <select id="balance-month-select" onchange="updateBalanceView()"></select>
+                    <select id="balance-year-select" onchange="updateBalanceView()"></select>
+                </div>
+            </div>
+
+            <div class="balance-view-toggle">
+                <button id="btn-weekly-view" class="active" onclick="switchBalanceView('weekly')">🗓️ Semanal</button>
+                <button id="btn-monthly-view" onclick="switchBalanceView('monthly')">📊 Mensual</button>
+                <button id="btn-annual-view" onclick="switchBalanceView('annual')">🚀 Anual</button>
+            </div>
+
+            <div id="weekly-content" class="balance-content-view">
+                <div class="monthly-summary-panel">
+                    <div class="monthly-summary-header">
+                        <h3 class="monthly-summary-title">Resumen Total del Mes</h3>
+                        <button id="download-month-summary-pdf" class="pdf-btn-main" title="Descargar Resumen Mensual en PDF">
+                            <span class="icon">📄</span>
+                            Descargar PDF del Mes
+                        </button>
+                    </div>
+                    <div class="monthly-summary-cards">
+                        <div class="summary-card-balance income">
+                            <span class="summary-label">Ingresos del Mes</span>
+                            <span class="summary-value" id="total-month-income">$0</span>
+                        </div>
+                        <div class="summary-card-balance expense">
+                            <span class="summary-label">Gastos del Mes</span>
+                            <span class="summary-value" id="total-month-expenses">$0</span>
+                        </div>
+                        <div class="summary-card-balance balance">
+                            <span class="summary-label">Balance Mensual</span>
+                            <span class="summary-value" id="total-month-balance">$0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="weekly-breakdown" id="weekly-breakdown-container">
+                    </div>
+
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <h3 class="chart-title">Ingresos vs. Gastos (Dona)</h3>
+                        <canvas id="monthly-summary-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 class="chart-title">Balance Semanal (Barras)</h3>
+                        <canvas id="weekly-bar-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="dashboard" id="basic-dashboard">
         <button class="back-btn" onclick="showHero()">← Volver</button>
         <div class="dashboard-header">
@@ -236,7 +299,7 @@
                 <h4 class="function-title">Registro de Ingresos y Gastos</h4>
                 <p class="function-description">Registra y controla todas tus entradas y salidas de dinero en un solo lugar.</p>
             </div>
-            <div class="function-card">
+            <div class="function-card" onclick="showBalanceView()">
                 <h4 class="function-title">Balance Simple</h4>
                 <p class="function-description">Ve cuánto tienes vs cuánto debes de forma clara.</p>
             </div>
@@ -277,5 +340,6 @@
 
     <script src="JS/scripts.js"></script>
     <script src="JS/calendar.js"></script>
+    <script src="JS/balance.js"></script>
 </body>
 </html>

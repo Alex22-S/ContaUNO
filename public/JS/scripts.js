@@ -18,11 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     themeToggle.addEventListener('change', () => {
         setTheme(themeToggle.checked);
+        
+        // CORRECCIÓN 3: Si la vista de balance está activa, actualízala para cambiar el color de los gráficos.
+        if (document.getElementById('balance-view').classList.contains('active')) {
+            updateBalanceView();
+        }
     });
 
     const savedTheme = localStorage.getItem('theme');
     setTheme(savedTheme === 'light');
 
+    // ... (el resto de tu código de scripts.js no necesita cambios)
     // --- ELEMENTOS FLOTANTES ANIMADOS ---
     function createFloatingElements() {
         const container = document.getElementById('floatingElements');
@@ -70,7 +76,8 @@ function hideAllViews() {
     document.getElementById('hero').style.display = 'none';
     document.querySelectorAll('.dashboard').forEach(d => d.classList.remove('active'));
     document.getElementById('calendar-view').classList.remove('active');
-    document.getElementById('form-view').classList.remove('active'); // AÑADIDO: Oculta la vista del formulario
+    document.getElementById('form-view').classList.remove('active');
+    document.getElementById('balance-view').classList.remove('active');
 }
 
 function showDashboard(level) {
@@ -96,24 +103,33 @@ function showCalendar() {
     const calendarView = document.getElementById('calendar-view');
     calendarView.classList.add('active');
     
-    // Inicializa o actualiza el calendario cada vez que se muestra
-    // Se asegura de que el calendario muestre el mes y año actual al abrirse
-    if (typeof initializeCalendar === 'function') {
-        const currentDate = new Date();
-        const monthSelect = document.getElementById('month-select');
-        const yearSelect = document.getElementById('year-select');
-
-        // Solo se actualiza si el calendario no tiene ya una fecha seleccionada
-        // para no perder el contexto al volver del formulario.
+    if (typeof updateCalendar === 'function') {
         if (!calendarView.dataset.context) {
+            const currentDate = new Date();
+            const monthSelect = document.getElementById('month-select');
+            const yearSelect = document.getElementById('year-select');
              if(monthSelect) monthSelect.value = currentDate.getMonth();
              if(yearSelect) yearSelect.value = currentDate.getFullYear();
         }
         
         updateCalendar();
-        delete calendarView.dataset.context; // Limpiar contexto
+        delete calendarView.dataset.context; 
     }
      window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showBalanceView() {
+    hideAllViews();
+    const balanceView = document.getElementById('balance-view');
+    if (balanceView) {
+        balanceView.classList.add('active');
+    }
+
+    if (typeof populateBalanceSelectors === 'function' && typeof updateBalanceView === 'function') {
+        populateBalanceSelectors();
+        updateBalanceView();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function filterFunctions(query, level) {
