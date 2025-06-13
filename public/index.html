@@ -8,13 +8,15 @@
     <link rel="stylesheet" href="CSS/calendar.css">
     <link rel="stylesheet" href="CSS/form.css">
     <link rel="stylesheet" href="CSS/balance.css"> 
+    <link rel="stylesheet" href="CSS/analysis.css"> 
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
-<body>
-    <div class="floating-elements" id="floatingElements"></div>
+<body class="dark-mode"> <div class="floating-elements" id="floatingElements"></div>
     
     <header class="header">
         <nav class="nav">
@@ -237,8 +239,8 @@
 
             <div class="balance-view-toggle">
                 <button id="btn-weekly-view" class="active" onclick="switchBalanceView('weekly')">🗓️ Semanal</button>
-                <button id="btn-monthly-view" onclick="switchBalanceView('monthly')">📊 Mensual</button>
-                <button id="btn-annual-view" onclick="switchBalanceView('annual')">🚀 Anual</button>
+                <button id="btn-monthly-view" disabled>📊 Mensual</button>
+                <button id="btn-annual-view" disabled>🚀 Anual</button>
             </div>
 
             <div id="weekly-content" class="balance-content-view">
@@ -267,17 +269,28 @@
                 </div>
                 
                 <div class="weekly-breakdown" id="weekly-breakdown-container">
-                    </div>
+                </div>
 
                 <div class="charts-section">
                     <div class="chart-container">
                         <h3 class="chart-title">Ingresos vs. Gastos (Dona)</h3>
-                        <canvas id="monthly-summary-chart"></canvas>
-                    </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="monthly-summary-chart"></canvas>
+                        </div>
+                        </div>
                     <div class="chart-container">
                         <h3 class="chart-title">Balance Semanal (Barras)</h3>
-                        <canvas id="weekly-bar-chart"></canvas>
-                    </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="weekly-bar-chart"></canvas>
+                        </div>
+                        </div>
+                </div>
+
+                <div class="full-report-section">
+                    <button id="btn-generate-full-report" class="btn-main-action">
+                        <span class="icon">📈</span>
+                        Generar Resumen Financiero Completo
+                    </button>
                 </div>
             </div>
         </div>
@@ -338,8 +351,119 @@
         <button class="back-btn" onclick="showHero()">← Volver</button>
     </div>
 
+    <div class="analysis-report-view" id="full-analysis-view">
+        <button class="back-btn" onclick="showBalanceView()">← Volver al Balance</button>
+        <div class="analysis-container">
+            <div class="analysis-header">
+                <h2>Reporte Financiero Detallado</h2>
+                <p id="analysis-period">Mes y Año</p>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card income">
+                    <h4>Ingresos Totales</h4>
+                    <p id="kpi-total-income">$0</p>
+                </div>
+                <div class="kpi-card expense">
+                    <h4>Gastos Totales</h4>
+                    <p id="kpi-total-expense">$0</p>
+                </div>
+                <div class="kpi-card balance">
+                    <h4>Balance Neto</h4>
+                    <p id="kpi-net-balance">$0</p>
+                </div>
+                <div class="kpi-card special">
+                    <h4>Día Más Rentable</h4>
+                    <p id="kpi-best-day">N/A</p>
+                </div>
+            </div>
+
+            <div class="analysis-charts-grid">
+                <div class="analysis-chart-container">
+                    <h3 class="analysis-card-title">Flujo de Dinero Diario</h3>
+                    <div class="canvas-wrapper-analysis">
+                        <canvas id="daily-flow-chart"></canvas>
+                    </div>
+                </div>
+                <div class="analysis-chart-container">
+                    <h3 class="analysis-card-title">Distribución de Ingresos</h3>
+                     <div class="canvas-wrapper-analysis">
+                        <canvas id="income-distribution-chart"></canvas>
+                    </div>
+                </div>
+                <div class="analysis-chart-container">
+                    <h3 class="analysis-card-title">Distribución de Gastos</h3>
+                     <div class="canvas-wrapper-analysis">
+                        <canvas id="expense-distribution-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-tables-grid">
+                <div class="category-table-container">
+                    <h3 class="analysis-card-title">Ingresos por Categoría</h3>
+                    <div class="table-wrapper">
+                        <table id="category-income-table">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Monto Total</th>
+                                    <th>Porcentaje del Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="category-table-container">
+                    <h3 class="analysis-card-title">Gastos por Categoría</h3>
+                    <div class="table-wrapper">
+                        <table id="category-expense-table">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Monto Total</th>
+                                    <th>Porcentaje del Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="strategic-insights-panel">
+                <div class="insight-column">
+                    <h3 class="insight-column-title">
+                        <span class="icon">✅</span> Puntos Positivos
+                    </h3>
+                    <div id="positive-insights-content">
+                        </div>
+                </div>
+                <div class="insight-column">
+                    <h3 class="insight-column-title">
+                        <span class="icon">⚠️</span> Áreas de Atención
+                    </h3>
+                    <div id="attention-insights-content">
+                        </div>
+                </div>
+                <div class="insight-column">
+                    <h3 class="insight-column-title">
+                        <span class="icon">💡</span> Sugerencias y Oportunidades
+                    </h3>
+                    <div id="recommendation-insights-content">
+                        </div>
+                </div>
+            </div>
+            </div>
+    </div>
+    
     <script src="JS/scripts.js"></script>
     <script src="JS/calendar.js"></script>
+    <script src="JS/form.js"></script>
     <script src="JS/balance.js"></script>
+    <script src="JS/analysis.js"></script>
 </body>
 </html>

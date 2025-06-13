@@ -5,14 +5,15 @@
 }
 
 :root {
-    /* Paleta Dark (Original) */
+    /* Paleta Dark (Modificada) */
     --bg-gradient: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d2d5f 100%);
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.8);
     --header-bg: rgba(15, 15, 35, 0.8);
     --header-border: rgba(255, 255, 255, 0.1);
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --card-border: rgba(255, 255, 255, 0.1);
+    /* Cambio clave: fondo de tarjeta sólido en modo oscuro */
+    --card-bg: #1e1e48; /* Era rgba(255, 255, 255, 0.05) */
+    --card-border: rgba(255, 255, 255, 0.15);
     --card-hover-border: rgba(0, 212, 255, 0.5);
     --card-hover-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
     --input-bg: rgba(255, 255, 255, 0.1);
@@ -23,6 +24,9 @@
     --hero-title-gradient: linear-gradient(45deg, #ffffff, #00d4ff, #7c3aed);
     --hero-shadow: 0 0 50px rgba(0, 212, 255, 0.3);
     --particle-bg: rgba(0, 212, 255, 0.3);
+    /* Colores primarios para gradientes y botones */
+    --primary: #6366f1;
+    --primary-light: #818cf8;
 }
 
 body {
@@ -40,7 +44,7 @@ body.light-mode {
     --text-secondary: #475569;
     --header-bg: rgba(255, 255, 255, 0.7);
     --header-border: #e2e8f0;
-    --card-bg: #ffffff;
+    --card-bg: #ffffff; /* Fondo blanco sólido para modo claro */
     --card-border: #e2e8f0;
     --card-hover-border: #7c3aed;
     --card-hover-shadow: 0 20px 40px rgba(124, 58, 237, 0.15);
@@ -52,6 +56,8 @@ body.light-mode {
     --hero-title-gradient: linear-gradient(45deg, #1e293b, #00aaff, #7c3aed);
     --hero-shadow: 0 0 50px rgba(124, 58, 237, 0.2);
     --particle-bg: rgba(124, 58, 237, 0.3);
+    --primary: #4f46e5;
+    --primary-light: #6366f1;
 }
 
 .header {
@@ -59,6 +65,7 @@ body.light-mode {
     top: 0;
     width: 100%;
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     background: var(--header-bg);
     border-bottom: 1px solid var(--header-border);
     z-index: 1000;
@@ -79,8 +86,8 @@ body.light-mode {
     font-weight: 800;
     background: var(--logo-gradient);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: transparent;
 }
 
 .nav-links {
@@ -108,7 +115,7 @@ body.light-mode .nav-link {
 }
 
 body.light-mode .nav-link:hover {
-    color: #7c3aed;
+    color: var(--primary);
 }
 
 .nav-link::after {
@@ -219,8 +226,8 @@ body.light-mode .hero::before {
     margin-bottom: 1rem;
     background: var(--hero-title-gradient);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: transparent;
     text-shadow: var(--hero-shadow);
     animation: float 3s ease-in-out infinite;
 }
@@ -249,7 +256,6 @@ body.light-mode .hero::before {
 
 .level-card {
     background: var(--card-bg);
-    backdrop-filter: blur(20px);
     border: 1px solid var(--card-border);
     border-radius: 20px;
     padding: 2rem;
@@ -332,8 +338,8 @@ body.light-mode .level-card::before {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .dashboard.active {
@@ -369,6 +375,7 @@ body.light-mode .level-card::before {
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     z-index: 100;
     font-weight: 600;
 }
@@ -377,6 +384,10 @@ body.light-mode .level-card::before {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
     box-shadow: var(--input-focus-shadow);
+}
+
+body.light-mode .back-btn {
+    background-color: var(--card-bg);
 }
 
 body.light-mode .back-btn:hover {
@@ -394,7 +405,6 @@ body.light-mode .back-btn:hover {
 
 .function-card {
     background: var(--card-bg);
-    backdrop-filter: blur(15px);
     border: 1px solid var(--card-border);
     border-radius: 15px;
     padding: 1.5rem;
@@ -423,7 +433,7 @@ body.light-mode .function-card:hover {
 }
 
 body.light-mode .function-title {
-    color: #0c22a2;
+    color: var(--primary);
 }
 
 .function-description {

@@ -19,31 +19,44 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggle.addEventListener('change', () => {
         setTheme(themeToggle.checked);
         
-        // CORRECCIÓN 3: Si la vista de balance está activa, actualízala para cambiar el color de los gráficos.
+        // Si la vista de balance está activa, actualízala para cambiar el color de los gráficos.
         if (document.getElementById('balance-view').classList.contains('active')) {
             updateBalanceView();
+        }
+        // NUEVO: Si la vista de análisis completo está activa, también la actualizamos.
+        if (document.getElementById('full-analysis-view').style.display !== 'none') {
+             // La forma más sencilla es volver a llamar a la función que genera el reporte
+             // desde el botón en la vista de balance, ya que necesitamos los datos frescos.
+             // Aquí asumimos que los datos ya están cargados para el reporte.
+             // Lo ideal es que `updateBalanceView` lo gestione.
+             if(typeof updateBalanceView === 'function') {
+                 // Disparamos la lógica de reporte desde la vista de balance para recargar con los colores correctos.
+                 // Esto es una simplificación; una arquitectura más compleja usaría un manejador de estado.
+                 showBalanceView(); // Regresa al balance para recargar
+                 setTimeout(() => document.getElementById('btn-generate-full-report').click(), 100); // y vuelve a generar el reporte
+             }
         }
     });
 
     const savedTheme = localStorage.getItem('theme');
     setTheme(savedTheme === 'light');
-
-    // ... (el resto de tu código de scripts.js no necesita cambios)
+    
     // --- ELEMENTOS FLOTANTES ANIMADOS ---
     function createFloatingElements() {
         const container = document.getElementById('floatingElements');
         if (!container) return;
         container.innerHTML = '';
-        for (let i = 0; i < 50; i++) {
+        const elementCount = window.innerWidth > 768 ? 50 : 20; // Menos elementos en móvil
+        for (let i = 0; i < elementCount; i++) {
             const element = document.createElement('div');
             element.className = 'floating-element';
             element.style.left = Math.random() * 100 + '%';
-            element.style.animationDelay = Math.random() * 15 + 's';
-            element.style.animationDuration = (15 + Math.random() * 10) + 's';
+            const randomDelay = Math.random() * 15;
+            const randomDuration = 15 + Math.random() * 10;
+            element.style.animation = `float-particle ${randomDuration}s ${randomDelay}s infinite linear`;
             container.appendChild(element);
         }
     }
-
     createFloatingElements();
     
     // --- ANIMACIÓN DE ENTRADA PARA TARJETAS ---
@@ -65,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.function-card, .level-card').forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
 });
@@ -78,6 +91,10 @@ function hideAllViews() {
     document.getElementById('calendar-view').classList.remove('active');
     document.getElementById('form-view').classList.remove('active');
     document.getElementById('balance-view').classList.remove('active');
+    
+    // Ocultar la nueva vista de reporte
+    const fullAnalysisView = document.getElementById('full-analysis-view');
+    if (fullAnalysisView) fullAnalysisView.style.display = 'none';
 }
 
 function showDashboard(level) {
@@ -132,13 +149,27 @@ function showBalanceView() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// =================================================================
+// NUEVA FUNCIÓN PARA MOSTRAR LA VISTA DEL REPORTE FINANCIERO COMPLETO
+// =================================================================
+function showFullAnalysisReportView() {
+    hideAllViews();
+    const reportView = document.getElementById('full-analysis-view');
+    if (reportView) {
+        // Usamos 'block' para que el grid funcione correctamente
+        reportView.style.display = 'block'; 
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+// =================================================================
+
 function filterFunctions(query, level) {
     const functions = document.querySelectorAll(`#${level}-functions .function-card`);
-    const searchTerm = query.toLowerCase().trim();
+    const searchTerm = query.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
     functions.forEach(card => {
-        const title = card.querySelector('.function-title').textContent.toLowerCase();
-        const description = card.querySelector('.function-description').textContent.toLowerCase();
+        const title = card.querySelector('.function-title').textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const description = card.querySelector('.function-description').textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         
         if (title.includes(searchTerm) || description.includes(searchTerm)) {
             card.style.display = 'block';

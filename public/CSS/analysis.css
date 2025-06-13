@@ -1,0 +1,349 @@
+/* ================================================= */
+/* === ESTILOS PARA EL REPORTE FINANCIERO DETALLADO === */
+/* ================================================= */
+
+.analysis-report-view {
+    display: none; /* Se activa con JS */
+    padding: 100px 2rem 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Contenedor principal del análisis */
+.analysis-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+/* Header del reporte */
+.analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+}
+.analysis-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+#analysis-period {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background-color: var(--input-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+/* Grid de KPIs (Indicadores Clave) */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    border-left: 5px solid;
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border-color: var(--card-hover-border);
+}
+.kpi-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+}
+.kpi-card p {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+.kpi-card.income { border-left-color: #10b981; }
+.kpi-card.income p { color: #10b981; }
+.kpi-card.expense { border-left-color: #ef4444; }
+.kpi-card.expense p { color: #ef4444; }
+.kpi-card.balance { border-left-color: var(--primary); }
+.kpi-card.balance p { color: var(--text-primary); }
+.kpi-card.special { border-left-color: #f59e0b; }
+.kpi-card.special p { color: #f59e0b; }
+
+
+/* Grid para los gráficos principales */
+.analysis-charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1.5rem;
+}
+.analysis-chart-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+.analysis-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--header-border);
+}
+.canvas-wrapper-analysis {
+    position: relative;
+    flex-grow: 1; 
+}
+
+/* Grid para las tablas de categorías (lado a lado) */
+.category-tables-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Contenedores de tabla */
+.category-table-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    padding: 1.5rem;
+}
+
+/* Estilos de las tablas de categorías */
+.table-wrapper {
+    max-height: 300px;
+    overflow-y: auto;
+}
+#category-expense-table, #category-income-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#category-expense-table th, #category-expense-table td,
+#category-income-table th, #category-income-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--card-border);
+}
+#category-expense-table th, #category-income-table th {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    position: sticky; 
+    top: 0;
+    background: var(--card-bg);
+    z-index: 10;
+}
+#category-expense-table tbody tr:hover,
+#category-income-table tbody tr:hover {
+    background-color: var(--input-bg);
+}
+#category-expense-table tbody tr:last-child td,
+#category-income-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.percentage-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background-color: var(--input-bg);
+    border-radius: 5px;
+    height: 22px;
+    overflow: hidden;
+}
+.expense-percentage-fill,
+.income-percentage-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease-out;
+}
+.expense-percentage-fill {
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+.income-percentage-fill {
+    background: linear-gradient(90deg, #10b981, #38bdf8);
+}
+.percentage-text {
+    position: absolute;
+    left: 8px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+}
+
+
+/* ================================================= */
+/* === NUEVOS ESTILOS: PANEL DE ANÁLISIS ESTRATÉGICO === */
+/* ================================================= */
+
+.strategic-insights-panel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding-top: 1rem;
+    border-top: 1px solid var(--card-border);
+}
+
+.insight-column {
+    border-radius: 15px;
+    padding: 1.5rem;
+    height: 100%;
+}
+
+/* Fondo para modo claro */
+body:not(.dark-mode) .insight-column {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--card-border);
+}
+
+/* Fondo para modo oscuro (CORREGIDO) */
+.dark-mode .insight-column {
+    background: var(--card-bg); /* Fondo sólido */
+    border: 1px solid var(--card-border); /* Borde para definición */
+}
+
+
+.insight-column-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--header-border);
+}
+
+.insight-column-title .icon {
+    font-size: 1.4rem;
+}
+
+.insights-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 10px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.insight-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.insight-item p {
+    margin: 0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.insight-item p strong {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.insight-icon {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    padding-top: 2px;
+}
+
+/* Colores específicos para los tipos de insight */
+.insight-item.positive p strong { color: #34d399; }
+.insight-item.negative p strong { color: #f87171; }
+.insight-item.recommendation p strong { color: #fbbf24; }
+.insight-item.neutral p strong { color: #818cf8; }
+
+.dark-mode .insight-item.positive p strong { color: #34d399; }
+.dark-mode .insight-item.negative p strong { color: #f87171; }
+.dark-mode .insight-item.recommendation p strong { color: #fbbf24; }
+.dark-mode .insight-item.neutral p strong { color: #818cf8; }
+
+body:not(.dark-mode) .insight-item.positive p strong { color: #10b981; }
+body:not(.dark-mode) .insight-item.negative p strong { color: #ef4444; }
+body:not(.dark-mode) .insight-item.recommendation p strong { color: #f59e0b; }
+body:not(.dark-mode) .insight-item.neutral p strong { color: #6366f1; }
+
+
+/* --- DISEÑO RESPONSIVE --- */
+@media (max-width: 1200px) {
+    .analysis-charts-grid {
+        grid-template-columns: 1fr; 
+    }
+}
+
+@media (max-width: 1024px) {
+    .strategic-insights-panel {
+        grid-template-columns: 1fr; /* Apila las columnas en tablets */
+    }
+}
+
+
+@media (max-width: 992px) {
+    .category-tables-grid {
+        grid-template-columns: 1fr; 
+    }
+}
+
+@media (max-width: 768px) {
+    .analysis-report-view {
+        padding: 80px 1rem 1rem;
+    }
+    .analysis-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .kpi-card p {
+        font-size: 1.5rem;
+    }
+}
+
+.no-insights-msg {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 1rem;
+    font-style: italic;
+}
