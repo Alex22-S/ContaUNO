@@ -1,13 +1,18 @@
-// === SISTEMA DE CALENDARIO Y FORMULARIO PARA CONTAUNO ===
+// === SISTEMA DE CALENDARIO Y FORMULARIO PARA CONTAUNO (ACTUALIZADO CON INVENTARIO MÚLTIPLE) ===
 
 // Variables globales
 let currentDate = new Date();
 let selectedDate = null;
 let transactions = {};
 let categories = {};
-let transactionTemplates = []; // Para guardar plantillas
+let transactionTemplates = [];
+let currentTransactionItems = []; // Array para los ítems de inventario de la transacción actual
 
-// Inicialización cuando el DOM esté listo
+// Constantes para las categorías especiales de inventario
+const INVENTORY_SALE_CATEGORY = 'inv-sale';
+const INVENTORY_PURCHASE_CATEGORY = 'inv-purchase';
+
+
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedData();
     initializeCalendar();
@@ -28,8 +33,8 @@ function loadSavedData() {
         categories = JSON.parse(savedCategories);
     } else {
         categories = {
-            income: ['Ventas', 'Servicios', 'Inversiones', 'Freelance', 'Otros Ingresos'],
-            expense: ['Suministros', 'Alquiler', 'Servicios Públicos', 'Alimentación', 'Transporte', 'Otros Gastos']
+            income: ['Ventas', 'Servicios', 'Otros Ingresos'],
+            expense: ['Suministros', 'Alquiler', 'Servicios Públicos', 'Marketing', 'Otros Gastos']
         };
     }
     // Cargar plantillas
@@ -47,7 +52,8 @@ function initializeCalendar() {
 
 function setupEventListeners() {
     document.getElementById('transaction-form-full')?.addEventListener('submit', handleTransactionSubmit);
-    document.getElementById('form-type')?.addEventListener('change', renderCategories);
+    document.getElementById('form-type')?.addEventListener('change', handleFormTypeChange);
+    document.getElementById('form-category')?.addEventListener('change', handleCategoryChange);
     document.getElementById('add-category-btn')?.addEventListener('click', addCategory);
     document.getElementById('edit-category-btn')?.addEventListener('click', editCategory);
     document.getElementById('delete-category-btn')?.addEventListener('click', deleteCategory);
@@ -56,17 +62,20 @@ function setupEventListeners() {
     // Event listeners para plantillas
     document.getElementById('save-template-btn')?.addEventListener('click', saveAsTemplate);
     document.getElementById('template-select')?.addEventListener('change', applyTemplate);
-
-    // === NUEVO: Event listeners para los botones de gestión de plantillas ===
     document.getElementById('edit-template-btn')?.addEventListener('click', editTemplate);
     document.getElementById('delete-template-btn')?.addEventListener('click', deleteTemplate);
 
+    // Listeners para la sección de inventario múltiple
+    document.getElementById('add-inventory-item-btn')?.addEventListener('click', addInventoryItemToTransaction);
+    document.getElementById('inventory-product-select')?.addEventListener('change', handleProductSelectionForUnitPrice);
 
     // Atajo de teclado para salir de la vista de formulario
     document.addEventListener('keydown', (e) => {
         const formView = document.getElementById('form-view');
-        if (e.key === 'Escape' && formView.classList.contains('active')) {
-            clearFormAndReturn();
+        if (formView.style.display !== 'none' && formView.classList.contains('active')) {
+            if (e.key === 'Escape') {
+               clearFormAndReturn();
+            }
         }
     });
 }
@@ -78,6 +87,7 @@ function populateYearSelect() {
     const yearSelect = document.getElementById('year-select');
     if (!yearSelect) return;
     const currentYear = new Date().getFullYear();
+    yearSelect.innerHTML = '';
     for (let year = 2020; year <= 2030; year++) {
         yearSelect.innerHTML += `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`;
     }
@@ -166,7 +176,7 @@ function createDayElement(day, month, year, isOtherMonth) {
 }
 
 
-// === GESTIÓN DEL FORMULARIO DE TRANSACCIÓN ===
+// === GESTIÓN DEL FORMULARIO DE TRANSACCIÓN (LÓGICA PRINCIPAL) ===
 
 function showTransactionForm(dateKey) {
     hideAllViews();
@@ -174,83 +184,158 @@ function showTransactionForm(dateKey) {
     formView.classList.add('active');
     
     selectedDate = dateKey;
-    clearForm(false);
+    clearForm(true); 
     
     document.getElementById('form-date-display').value = formatDateForDisplay(selectedDate);
     document.getElementById('form-title').textContent = `Movimiento para el ${formatDateForDisplay(selectedDate)}`;
     
-    renderCategories();
+    handleFormTypeChange();
     renderDailyTransactions(selectedDate);
     populateTemplateSelect();
     
-    document.getElementById('form-amount').focus();
+    document.getElementById('form-description').focus();
     document.getElementById('calendar-view').dataset.context = 'true';
 }
 
-function handleTransactionSubmit(e) {
+async function handleTransactionSubmit(e) {
     e.preventDefault();
-    const editingId = parseInt(document.getElementById('editing-transaction-id').value);
-
-    const transactionData = {
+    const editingId = document.getElementById('editing-transaction-id').value ? parseInt(document.getElementById('editing-transaction-id').value, 10) : null;
+    const category = document.getElementById('form-category').value;
+    const isInventoryTransaction = category === INVENTORY_SALE_CATEGORY || category === INVENTORY_PURCHASE_CATEGORY;
+    
+    let transactionData = {
+        id: editingId || Date.now(),
         date: selectedDate,
         type: document.getElementById('form-type').value,
         amount: parseFloat(document.getElementById('form-amount').value),
-        description: document.getElementById('form-description').value.trim(),
-        category: document.getElementById('form-category').value,
         provider: document.getElementById('form-provider').value.trim(),
         providerId: document.getElementById('form-provider-id').value.trim(),
-        notes: document.getElementById('form-notes').value.trim()
+        notes: document.getElementById('form-notes').value.trim(),
+        isInventory: isInventoryTransaction,
+        items: isInventoryTransaction ? [...currentTransactionItems] : []
     };
+    
+    if (isInventoryTransaction) {
+        if (currentTransactionItems.length === 0) {
+            showNotification("Debes añadir al menos un producto de inventario.", 'error');
+            return;
+        }
+        transactionData.category = transactionData.type === 'income' ? 'Venta de Inventario' : 'Compra de Inventario';
+        transactionData.description = `${transactionData.category} - ${currentTransactionItems.length} ítem(s)`;
+    } else {
+        transactionData.category = category;
+        transactionData.description = document.getElementById('form-description').value.trim();
+    }
 
-    if (!transactionData.amount || transactionData.amount <= 0 || !transactionData.description) {
-        alert("Por favor, completa al menos el monto y la descripción.");
+    if (!transactionData.amount || transactionData.amount < 0 || !transactionData.description || !transactionData.category) {
+        showNotification("Por favor, completa los campos requeridos: descripción, categoría y monto.", 'error');
         return;
     }
+    
+    // --- Lógica de actualización de stock ---
+    if (isInventoryTransaction) {
+        const originalTx = editingId ? transactions[selectedDate]?.find(t => t.id === editingId) : null;
+        
+        if (editingId && originalTx) {
+            originalTx.items.forEach(item => {
+                const revertQty = originalTx.type === 'income' ? item.quantity : -item.quantity;
+                updateProductStock(item.productId, revertQty);
+            });
+        }
 
+        let stockUpdatedItems = [];
+        for (const item of currentTransactionItems) {
+            const quantityChange = transactionData.type === 'income' ? -item.quantity : item.quantity;
+            const unitCost = transactionData.type === 'expense' ? item.price : null;
+            const success = updateProductStock(item.productId, quantityChange, unitCost);
+            
+            if (!success) { 
+                stockUpdatedItems.forEach(updatedItem => {
+                    const revertQty = transactionData.type === 'income' ? updatedItem.quantity : -updatedItem.quantity;
+                    updateProductStock(updatedItem.productId, revertQty);
+                });
+
+                 if(originalTx) {
+                    originalTx.items.forEach(item => {
+                        const revertQty = originalTx.type === 'income' ? -item.quantity : item.quantity;
+                        updateProductStock(item.productId, revertQty, originalTx.type === 'expense' ? item.price : null);
+                    });
+                }
+                return; 
+            }
+            stockUpdatedItems.push(item);
+        }
+    }
+    
+    // --- Guardado de la transacción ---
     if (editingId) {
         const index = transactions[selectedDate].findIndex(t => t.id === editingId);
-        if (index > -1) {
-            transactions[selectedDate][index] = { ...transactions[selectedDate][index], ...transactionData };
-        }
+        if (index > -1) transactions[selectedDate][index] = transactionData;
     } else {
-        if (!transactions[selectedDate]) {
-            transactions[selectedDate] = [];
-        }
-        transactions[selectedDate].push({ ...transactionData, id: Date.now() });
+        if (!transactions[selectedDate]) transactions[selectedDate] = [];
+        transactions[selectedDate].push(transactionData);
     }
-
+    
     localStorage.setItem('contauno_transactions', JSON.stringify(transactions));
-    
-    clearForm(true); 
-    updateCalendar(); 
+    clearForm(true);
+    updateCalendar();
     renderDailyTransactions(selectedDate);
-    
-    document.getElementById('form-amount').focus();
+    showNotification('Transacción guardada con éxito.', 'success');
 }
+
 
 // === Lógica de edición y eliminación ===
 
-function editTransaction(id, dateKey) {
+async function editTransaction(id, dateKey) {
     const transaction = transactions[dateKey]?.find(t => t.id === id);
     if (!transaction) return;
 
     document.getElementById('editing-transaction-id').value = transaction.id;
     document.getElementById('form-type').value = transaction.type;
-    renderCategories();
-    document.getElementById('form-category').value = transaction.category;
     document.getElementById('form-amount').value = transaction.amount;
-    document.getElementById('form-description').value = transaction.description;
-    document.getElementById('form-provider').value = transaction.provider;
-    document.getElementById('form-provider-id').value = transaction.providerId;
-    document.getElementById('form-notes').value = transaction.notes;
+    document.getElementById('form-provider').value = transaction.provider || '';
+    document.getElementById('form-provider-id').value = transaction.providerId || '';
+    document.getElementById('form-notes').value = transaction.notes || '';
+
+    renderCategories();
+
+    if (transaction.isInventory) {
+        const categoryValue = transaction.type === 'income' ? INVENTORY_SALE_CATEGORY : INVENTORY_PURCHASE_CATEGORY;
+        document.getElementById('form-category').value = categoryValue;
+        handleCategoryChange(); 
+        currentTransactionItems = JSON.parse(JSON.stringify(transaction.items));
+        renderTransactionItemsList();
+    } else {
+        document.getElementById('form-category').value = transaction.category;
+        handleCategoryChange();
+        document.getElementById('form-description').value = transaction.description;
+    }
 
     document.getElementById('save-transaction-btn').textContent = '💾 Actualizar Transacción';
-    document.getElementById('form-amount').focus();
+    document.getElementById('form-description').focus();
 }
 
-function deleteTransaction(id, dateKey) {
-    if (confirm("¿Estás seguro de que quieres eliminar esta transacción?")) {
-        transactions[dateKey] = transactions[dateKey].filter(t => t.id !== id);
+async function deleteTransaction(id, dateKey) {
+    const confirmed = await showConfirmation({
+        title: '¿Eliminar Transacción?',
+        message: 'Esta acción es irreversible y afectará el stock de tu inventario si está asociada a productos.',
+        confirmText: 'Sí, Eliminar'
+    });
+
+    if (confirmed) {
+        const txIndex = transactions[dateKey].findIndex(t => t.id === id);
+        if (txIndex === -1) return;
+
+        const txToDelete = transactions[dateKey][txIndex];
+
+        if (txToDelete.isInventory && txToDelete.items && txToDelete.items.length > 0) {
+            txToDelete.items.forEach(item => {
+                const revertQty = txToDelete.type === 'income' ? item.quantity : -item.quantity;
+                updateProductStock(item.productId, revertQty);
+            });
+        }
+
+        transactions[dateKey].splice(txIndex, 1);
         if (transactions[dateKey].length === 0) {
             delete transactions[dateKey];
         }
@@ -258,11 +343,222 @@ function deleteTransaction(id, dateKey) {
         
         updateCalendar();
         renderDailyTransactions(dateKey);
+        showNotification('Transacción eliminada.', 'success');
     }
 }
 
 
-// === GESTIÓN DE LA LISTA DE TRANSACCIONES DIARIAS ===
+// === GESTIÓN DE LA INTERFAZ DEL FORMULARIO ===
+
+function handleFormTypeChange() {
+    renderCategories();
+    handleCategoryChange(); 
+}
+
+/**
+ * [FUNCIÓN CORREGIDA]
+ * Muestra/oculta campos y gestiona el atributo 'required' dinámicamente.
+ */
+function handleCategoryChange() {
+    const category = document.getElementById('form-category').value;
+    const inventorySection = document.getElementById('inventory-section');
+    const standardFields = document.getElementById('standard-fields-group');
+    const amountInput = document.getElementById('form-amount');
+    const descriptionInput = document.getElementById('form-description'); // Referencia al input
+
+    const isInventory = category === INVENTORY_SALE_CATEGORY || category === INVENTORY_PURCHASE_CATEGORY;
+
+    inventorySection.style.display = isInventory ? 'block' : 'none';
+    standardFields.style.display = isInventory ? 'none' : 'block';
+    amountInput.readOnly = isInventory;
+    
+    // --- CORRECCIÓN: Gestionar dinámicamente el atributo 'required' ---
+    // Si es una transacción de inventario, la descripción no es requerida.
+    // Si no, sí lo es.
+    descriptionInput.required = !isInventory;
+    
+    if (isInventory) {
+        populateProductSelect();
+        if (document.getElementById('editing-transaction-id').value === '') {
+            currentTransactionItems = [];
+            renderTransactionItemsList();
+        }
+    }
+}
+
+
+function renderCategories() {
+    const type = document.getElementById('form-type').value;
+    const categorySelect = document.getElementById('form-category');
+    const fragment = document.createDocumentFragment();
+    
+    if (categories[type] && categories[type].length > 0) {
+        categories[type].forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            fragment.appendChild(option);
+        });
+    }
+
+    const separator = document.createElement('option');
+    separator.disabled = true;
+    separator.textContent = '──────────';
+    fragment.appendChild(separator);
+
+    if (type === 'income') {
+        const invOption = document.createElement('option');
+        invOption.value = INVENTORY_SALE_CATEGORY;
+        invOption.textContent = '📦 Venta de Inventario';
+        fragment.appendChild(invOption);
+    } else { 
+        const invOption = document.createElement('option');
+        invOption.value = INVENTORY_PURCHASE_CATEGORY;
+        invOption.textContent = '📥 Compra de Inventario';
+        fragment.appendChild(invOption);
+    }
+    
+    categorySelect.innerHTML = '';
+    categorySelect.appendChild(fragment);
+}
+
+function clearForm(fullReset) {
+    if (fullReset) {
+        document.getElementById('transaction-form-full').reset();
+        document.getElementById('form-type').value = 'income';
+        currentTransactionItems = [];
+        renderTransactionItemsList();
+        handleFormTypeChange();
+    }
+    document.getElementById('editing-transaction-id').value = '';
+    document.getElementById('save-transaction-btn').textContent = '💾 Guardar Transacción';
+}
+
+function clearFormAndReturn() {
+    clearForm(true);
+    showCalendar();
+}
+
+
+// === LÓGICA DE INVENTARIO EN FORMULARIO (MÚLTIPLE) ===
+
+function addInventoryItemToTransaction() {
+    const productSelect = document.getElementById('inventory-product-select');
+    const quantityInput = document.getElementById('inventory-quantity');
+    const priceInput = document.getElementById('inventory-unit-price');
+    const type = document.getElementById('form-type').value;
+    
+    const productId = productSelect.value;
+    const quantity = parseInt(quantityInput.value, 10);
+    const price = parseFloat(priceInput.value);
+
+    if (!productId || !quantity || quantity <= 0 || isNaN(price) || price < 0) {
+        showNotification("Por favor, selecciona un producto y especifica cantidad y precio válidos.", 'error');
+        return;
+    }
+
+    if (type === 'income') {
+        const localProducts = JSON.parse(localStorage.getItem('contauno_products') || '[]');
+        const product = localProducts.find(p => p.id === productId);
+        
+        if (product) {
+            const itemInCart = currentTransactionItems.find(item => item.productId === productId);
+            const quantityInCart = itemInCart ? itemInCart.quantity : 0;
+            
+            if (quantity + quantityInCart > product.stock) {
+                showNotification(`Stock insuficiente para "${product.name}". Disponible: ${product.stock}`, 'warning');
+                return;
+            }
+        }
+    }
+
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+    const productName = selectedOption.text.split(' (Stock:')[0];
+
+    const existingItemIndex = currentTransactionItems.findIndex(item => item.productId === productId);
+    if (existingItemIndex > -1) {
+        currentTransactionItems[existingItemIndex].quantity += quantity;
+    } else {
+        currentTransactionItems.push({ productId, productName, quantity, price });
+    }
+    
+    renderTransactionItemsList();
+    
+    productSelect.selectedIndex = 0;
+    quantityInput.value = '';
+    priceInput.value = '';
+    productSelect.focus();
+}
+
+
+function renderTransactionItemsList() {
+    const container = document.getElementById('inventory-items-list-container');
+    container.innerHTML = '';
+    let totalAmount = 0;
+    
+    if (currentTransactionItems.length === 0) {
+        container.innerHTML = '<p class="no-items-msg">No hay productos añadidos a la transacción.</p>';
+    } else {
+        const list = document.createElement('ul');
+        list.className = 'inventory-items-list';
+        currentTransactionItems.forEach((item, index) => {
+            const itemTotal = item.quantity * item.price;
+            totalAmount += itemTotal;
+            const listItem = document.createElement('li');
+            listItem.className = 'inventory-list-item';
+            listItem.innerHTML = `
+                <span class="item-name">${item.productName}</span>
+                <span class="item-details">${item.quantity} x ${formatCurrency(item.price)}</span>
+                <span class="item-total">${formatCurrency(itemTotal)}</span>
+                <button type="button" class="btn-remove-item" data-index="${index}" title="Quitar item">&times;</button>
+            `;
+            list.appendChild(listItem);
+        });
+        container.appendChild(list);
+    }
+    
+    document.getElementById('form-amount').value = totalAmount.toFixed(2);
+
+    container.querySelectorAll('.btn-remove-item').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const indexToRemove = parseInt(e.target.dataset.index, 10);
+            currentTransactionItems.splice(indexToRemove, 1);
+            renderTransactionItemsList();
+        });
+    });
+}
+
+function populateProductSelect() {
+    const select = document.getElementById('inventory-product-select');
+    const localProducts = JSON.parse(localStorage.getItem('contauno_products') || '[]');
+    
+    select.innerHTML = '<option value="">-- Selecciona un producto --</option>';
+    localProducts.forEach(p => {
+        const displayText = `${p.name} (Stock: ${p.stock})`;
+        select.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-cost="${p.weightedAverageCost}">${displayText}</option>`;
+    });
+}
+
+function handleProductSelectionForUnitPrice() {
+    const productSelect = document.getElementById('inventory-product-select');
+    const priceInput = document.getElementById('inventory-unit-price');
+    const type = document.getElementById('form-type').value;
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+
+    if (!selectedOption || !selectedOption.value) {
+        priceInput.value = '';
+        return;
+    }
+    
+    const unitValue = (type === 'income') 
+        ? parseFloat(selectedOption.dataset.price)
+        : parseFloat(selectedOption.dataset.cost);
+    
+    priceInput.value = unitValue.toFixed(2);
+}
+
+
+// === GESTIÓN DE LA LISTA DE TRANSACCIONES DIARIAS (PANEL DERECHO) ===
 function renderDailyTransactions(dateKey) {
     const listContainer = document.getElementById('daily-transactions-list');
     const dailyTransactions = transactions[dateKey] || [];
@@ -310,30 +606,18 @@ function updateDailySummary(dateKey) {
     balanceEl.textContent = formatCurrency(balance);
 
     balanceEl.classList.remove('positive-value', 'negative-value');
-    balanceEl.classList.add(balance >= 0 ? 'positive-value' : 'negative-value');
-}
-
-
-// === GESTIÓN DINÁMICA DE CATEGORÍAS ===
-function renderCategories() {
-    const type = document.getElementById('form-type').value;
-    const categorySelect = document.getElementById('form-category');
-    categorySelect.innerHTML = '';
-    
-    if (categories[type] && categories[type].length > 0) {
-        categories[type].forEach(cat => {
-            categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
-        });
-    } else {
-        categorySelect.innerHTML = `<option value="">--Añade una categoría--</option>`;
+    if (balance !== 0) {
+        balanceEl.classList.add(balance > 0 ? 'positive-value' : 'negative-value');
     }
 }
 
+
+// === GESTIÓN DINÁMICA DE CATEGORÍAS (MAESTRO) ===
 function saveCategories() {
     localStorage.setItem('contauno_categories', JSON.stringify(categories));
 }
 
-function addCategory() {
+async function addCategory() {
     const type = document.getElementById('form-type').value;
     const newCategory = prompt(`Añadir nueva categoría de ${type === 'income' ? 'Ingreso' : 'Gasto'}:`);
     if (newCategory && newCategory.trim() !== '') {
@@ -341,18 +625,19 @@ function addCategory() {
             categories[type].push(newCategory.trim());
             saveCategories();
             renderCategories();
+            showNotification('Categoría añadida.', 'success');
         } else {
-            alert('Esa categoría ya existe.');
+            showNotification('Esa categoría ya existe.', 'warning');
         }
     }
 }
 
-function editCategory() {
+async function editCategory() {
     const type = document.getElementById('form-type').value;
     const categorySelect = document.getElementById('form-category');
     const oldCategory = categorySelect.value;
-    if (!oldCategory || oldCategory === "") {
-        alert("Por favor, selecciona una categoría para editar.");
+    if (!oldCategory || oldCategory === INVENTORY_SALE_CATEGORY || oldCategory === INVENTORY_PURCHASE_CATEGORY) {
+        showNotification("Selecciona una categoría válida para editar.", 'error');
         return;
     }
 
@@ -361,32 +646,61 @@ function editCategory() {
         const index = categories[type].indexOf(oldCategory);
         if (index > -1) {
             categories[type][index] = newCategory.trim();
-            saveCategories();
-            renderCategories();
-            categorySelect.value = newCategory.trim();
         }
+        Object.keys(transactions).forEach(dateKey => {
+            transactions[dateKey].forEach(tx => {
+                if (tx.category === oldCategory) {
+                    tx.category = newCategory.trim();
+                }
+            });
+        });
+        saveCategories();
+        localStorage.setItem('contauno_transactions', JSON.stringify(transactions));
+        renderCategories();
+        categorySelect.value = newCategory.trim();
+        showNotification('Categoría actualizada.', 'success');
     }
 }
 
-function deleteCategory() {
+async function deleteCategory() {
     const type = document.getElementById('form-type').value;
     const categorySelect = document.getElementById('form-category');
     const categoryToDelete = categorySelect.value;
-    if (!categoryToDelete || categoryToDelete === "") {
-        alert("Por favor, selecciona una categoría para eliminar.");
+
+    if (!categoryToDelete || categoryToDelete === INVENTORY_SALE_CATEGORY || categoryToDelete === INVENTORY_PURCHASE_CATEGORY) {
+        showNotification("Selecciona una categoría válida para eliminar.", 'error');
         return;
     }
     
-    if (confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryToDelete}"? Esta acción no se puede deshacer.`)) {
+    const isCategoryInUse = Object.values(transactions).flat().some(tx => !tx.isInventory && tx.category === categoryToDelete);
+    if (isCategoryInUse) {
+        showNotification(`No se puede eliminar "${categoryToDelete}" porque está en uso.`, 'error');
+        return;
+    }
+
+    const confirmed = await showConfirmation({
+        title: '¿Eliminar Categoría?',
+        message: `¿Seguro que quieres eliminar la categoría "${categoryToDelete}"?`,
+        confirmText: 'Sí, Eliminar'
+    });
+
+    if (confirmed) {
         categories[type] = categories[type].filter(cat => cat !== categoryToDelete);
         saveCategories();
         renderCategories();
+        showNotification('Categoría eliminada.', 'success');
     }
 }
 
 
 // === SISTEMA DE PLANTILLAS ===
 function saveAsTemplate() {
+    const category = document.getElementById('form-category').value;
+    if (category === INVENTORY_SALE_CATEGORY || category === INVENTORY_PURCHASE_CATEGORY) {
+        showNotification("No se pueden guardar transacciones de inventario como plantillas.", 'error');
+        return;
+    }
+
     const templateName = prompt("Ingresa un nombre para esta plantilla (ej: 'Pago de arriendo'):");
     if (!templateName || templateName.trim() === '') return;
 
@@ -403,7 +717,7 @@ function saveAsTemplate() {
 
     transactionTemplates.push(templateData);
     localStorage.setItem('contauno_templates', JSON.stringify(transactionTemplates));
-    alert(`Plantilla "${templateData.name}" guardada.`);
+    showNotification(`Plantilla "${templateData.name}" guardada.`, 'success');
     populateTemplateSelect();
 }
 
@@ -426,6 +740,8 @@ function applyTemplate() {
     document.getElementById('form-type').value = template.type;
     renderCategories();
     document.getElementById('form-category').value = template.category;
+    handleCategoryChange();
+
     document.getElementById('form-amount').value = template.amount;
     document.getElementById('form-description').value = template.description;
     document.getElementById('form-provider').value = template.provider;
@@ -433,48 +749,49 @@ function applyTemplate() {
     document.getElementById('form-notes').value = template.notes;
 }
 
-// === NUEVO: GESTIÓN DE PLANTILLAS CON BOTONES ===
-function editTemplate() {
+async function editTemplate() {
     const select = document.getElementById('template-select');
     const templateIndex = select.value;
-
     if (templateIndex === '') {
-        alert("Por favor, selecciona una plantilla para renombrar.");
+        showNotification("Selecciona una plantilla para renombrar.", 'error');
         return;
     }
-
     const oldName = transactionTemplates[templateIndex].name;
     const newName = prompt(`Renombrar plantilla "${oldName}":`, oldName);
-
     if (newName && newName.trim() !== '' && newName.trim() !== oldName) {
         transactionTemplates[templateIndex].name = newName.trim();
         localStorage.setItem('contauno_templates', JSON.stringify(transactionTemplates));
         populateTemplateSelect();
-        // Mantener la plantilla editada seleccionada
         select.value = templateIndex;
+        showNotification('Plantilla renombrada.', 'success');
     }
 }
 
-function deleteTemplate() {
+async function deleteTemplate() {
     const select = document.getElementById('template-select');
     const templateIndex = select.value;
-
     if (templateIndex === '') {
-        alert("Por favor, selecciona una plantilla para eliminar.");
+        showNotification("Selecciona una plantilla para eliminar.", 'error');
         return;
     }
-
+    
     const templateName = transactionTemplates[templateIndex].name;
+    const confirmed = await showConfirmation({
+        title: '¿Eliminar Plantilla?',
+        message: `¿Seguro que quieres eliminar la plantilla "${templateName}"?`,
+        confirmText: 'Sí, Eliminar'
+    });
 
-    if (confirm(`¿Estás seguro de que quieres eliminar la plantilla "${templateName}"?`)) {
+    if (confirmed) {
         transactionTemplates.splice(templateIndex, 1);
         localStorage.setItem('contauno_templates', JSON.stringify(transactionTemplates));
-        populateTemplateSelect(); // Esto actualiza la lista y la resetea
+        populateTemplateSelect();
+        showNotification('Plantilla eliminada.', 'success');
     }
 }
 
 
-// === RESUMEN MENSUAL (CALENDARIO) ===
+// === RESUMEN MENSUAL Y PDF ===
 function updateSummary() {
     const month = parseInt(document.getElementById('month-select').value);
     const year = parseInt(document.getElementById('year-select').value);
@@ -496,101 +813,78 @@ function updateSummary() {
     const balanceEl = document.getElementById('monthly-balance');
     balanceEl.textContent = formatCurrency(balance);
     balanceEl.className = 'summary-value';
-    balanceEl.classList.add(balance >= 0 ? 'positive' : 'negative');
+    if(balance !== 0) balanceEl.classList.add(balance >= 0 ? 'positive' : 'negative');
 }
 
-// === FUNCIÓN PARA GENERAR PDF (CORREGIDA Y MEJORADA) ===
 function generateDailyPdf() {
-    // 1. VERIFICACIÓN: Asegurarse de que las librerías jsPDF y autoTable estén cargadas.
-    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
-        console.error("La librería jsPDF no se ha cargado correctamente.");
-        alert("Error: No se pudo cargar la funcionalidad PDF. Revisa la conexión a internet o contacta a soporte.");
-        return;
+    try {
+        const { jsPDF } = window.jspdf;
+        if (typeof jsPDF === 'undefined' || typeof window.jspdf.autoTable === 'undefined') {
+            showNotification("Error: No se pudo cargar la funcionalidad PDF.", 'error');
+            return;
+        }
+        
+        const dailyTransactions = transactions[selectedDate] || [];
+        if (dailyTransactions.length === 0) {
+            showNotification("No hay movimientos para generar un PDF.", 'info');
+            return;
+        }
+
+        const doc = new jsPDF();
+        const head = [['Descripción', 'Categoría', 'Tipo', 'Monto']];
+        const body = dailyTransactions.map(t => [
+            t.description,
+            t.category,
+            t.type === 'income' ? 'Ingreso' : 'Gasto',
+            formatCurrency(t.amount)
+        ]);
+        
+        let totalIncome = 0;
+        let totalExpenses = 0;
+        dailyTransactions.forEach(t => {
+            if (t.type === 'income') totalIncome += t.amount;
+            else totalExpenses += t.amount;
+        });
+        const totalBalance = totalIncome - totalExpenses;
+
+        doc.setFontSize(20);
+        doc.text("Resumen de Movimientos", 14, 22);
+        doc.setFontSize(12);
+        doc.text(`Fecha: ${formatDateForDisplay(selectedDate)}`, 14, 30);
+
+        doc.autoTable({
+            startY: 40,
+            head: head,
+            body: body,
+            theme: 'grid',
+            headStyles: { fillColor: [41, 128, 186], textColor: 255 },
+            styles: { halign: 'left' },
+            columnStyles: { 3: { halign: 'right' } }
+        });
+
+        const finalY = doc.lastAutoTable.finalY || 80;
+        doc.setFontSize(14);
+        doc.text("Resumen del Día", 14, finalY + 15);
+        
+        doc.setFontSize(10);
+        doc.text(`Total Ingresos: ${formatCurrency(totalIncome)}`, 14, finalY + 23);
+        doc.text(`Total Gastos: ${formatCurrency(totalExpenses)}`, 14, finalY + 31);
+        
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Balance del Día: ${formatCurrency(totalBalance)}`, 14, finalY + 40);
+
+        doc.save(`Resumen_${selectedDate}.pdf`);
+    } catch (error) {
+        console.error("Error al generar el PDF diario:", error);
+        showNotification("Ocurrió un error al generar el PDF.", 'error');
     }
-    // La librería autoTable se añade al prototipo de jsPDF, por lo que no es necesario verificarla por separado.
-
-    const { jsPDF } = window.jspdf;
-    const dailyTransactions = transactions[selectedDate] || [];
-
-    if (dailyTransactions.length === 0) {
-        alert("No hay movimientos para generar un PDF en esta fecha.");
-        return;
-    }
-
-    // 2. CREACIÓN DEL DOCUMENTO
-    const doc = new jsPDF();
-    
-    // 3. DATOS PARA LA TABLA
-    const head = [['Descripción', 'Categoría', 'Tipo', 'Monto']];
-    const body = dailyTransactions.map(t => [
-        t.description,
-        t.category,
-        t.type === 'income' ? 'Ingreso' : 'Gasto',
-        formatCurrency(t.amount)
-    ]);
-    
-    // 4. CÁLCULOS DEL RESUMEN
-    let totalIncome = 0;
-    let totalExpenses = 0;
-    dailyTransactions.forEach(t => {
-        if (t.type === 'income') totalIncome += t.amount;
-        else totalExpenses += t.amount;
-    });
-    const totalBalance = totalIncome - totalExpenses;
-
-    // 5. CONSTRUCCIÓN DEL PDF
-    doc.setFontSize(20);
-    doc.text("Resumen de Movimientos", 14, 22);
-    doc.setFontSize(12);
-    doc.text(`Fecha: ${formatDateForDisplay(selectedDate)}`, 14, 30);
-
-    // autoTable generará la tabla
-    doc.autoTable({
-        startY: 40,
-        head: head,
-        body: body,
-        theme: 'grid',
-        headStyles: { fillColor: [41, 128, 186], textColor: 255 },
-        styles: { halign: 'center' },
-        columnStyles: { 3: { halign: 'right' } } // Alinear montos a la derecha
-    });
-
-    // Añadir el resumen final debajo de la tabla
-    const finalY = doc.lastAutoTable.finalY || 80; // Usar la posición final de la tabla
-    doc.setFontSize(14);
-    doc.text("Resumen del Día", 14, finalY + 15);
-    
-    doc.setFontSize(10);
-    doc.text(`Total Ingresos: ${formatCurrency(totalIncome)}`, 14, finalY + 23);
-    doc.text(`Total Gastos: ${formatCurrency(totalExpenses)}`, 14, finalY + 31);
-    
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text(`Balance del Día: ${formatCurrency(totalBalance)}`, 14, finalY + 40);
-
-    // 6. GUARDAR EL DOCUMENTO
-    doc.save(`Resumen_${selectedDate}.pdf`);
 }
 
 
 // === FUNCIONES DE UTILIDAD ===
-
-function clearForm(fullReset) {
-    if (fullReset) {
-        document.getElementById('transaction-form-full').reset();
-        document.getElementById('form-type').value = 'income';
-    }
-    document.getElementById('editing-transaction-id').value = '';
-    document.getElementById('save-transaction-btn').textContent = '💾 Guardar Transacción';
-    renderCategories();
-}
-
-function clearFormAndReturn() {
-    clearForm(true);
-    showCalendar();
-}
-
 function formatCurrency(amount) {
+    if (typeof amount !== 'number') amount = 0;
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(amount);
 }
 
@@ -600,6 +894,6 @@ function formatDate(date) {
 
 function formatDateForDisplay(dateString) {
     const [year, month, day] = dateString.split('-');
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(year, parseInt(month, 10) - 1, parseInt(day, 10));
+    return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }

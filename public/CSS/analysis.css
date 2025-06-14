@@ -93,6 +93,13 @@
     grid-template-columns: 2fr 1fr 1fr;
     gap: 1.5rem;
 }
+
+/* REGLA REINCORPORADA: Para cuando se oculta el gráfico de flujo */
+.analysis-charts-grid.two-column-layout {
+    grid-template-columns: 1fr 1fr;
+}
+
+
 .analysis-chart-container {
     background: var(--card-bg);
     border: 1px solid var(--card-border);

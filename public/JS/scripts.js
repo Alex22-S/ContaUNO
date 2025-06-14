@@ -7,36 +7,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const setTheme = (isLight) => {
         if (isLight) {
             body.classList.add('light-mode');
-            themeToggle.checked = true;
+            if(themeToggle) themeToggle.checked = true;
             localStorage.setItem('theme', 'light');
         } else {
             body.classList.remove('light-mode');
-            themeToggle.checked = false;
+            if(themeToggle) themeToggle.checked = false;
             localStorage.setItem('theme', 'dark');
         }
     };
 
-    themeToggle.addEventListener('change', () => {
-        setTheme(themeToggle.checked);
-        
-        // Si la vista de balance está activa, actualízala para cambiar el color de los gráficos.
-        if (document.getElementById('balance-view').classList.contains('active')) {
-            updateBalanceView();
-        }
-        // NUEVO: Si la vista de análisis completo está activa, también la actualizamos.
-        if (document.getElementById('full-analysis-view').style.display !== 'none') {
-             // La forma más sencilla es volver a llamar a la función que genera el reporte
-             // desde el botón en la vista de balance, ya que necesitamos los datos frescos.
-             // Aquí asumimos que los datos ya están cargados para el reporte.
-             // Lo ideal es que `updateBalanceView` lo gestione.
-             if(typeof updateBalanceView === 'function') {
-                 // Disparamos la lógica de reporte desde la vista de balance para recargar con los colores correctos.
-                 // Esto es una simplificación; una arquitectura más compleja usaría un manejador de estado.
-                 showBalanceView(); // Regresa al balance para recargar
-                 setTimeout(() => document.getElementById('btn-generate-full-report').click(), 100); // y vuelve a generar el reporte
-             }
-        }
-    });
+    if(themeToggle) {
+        themeToggle.addEventListener('change', () => {
+            setTheme(themeToggle.checked);
+            
+            if (document.getElementById('balance-view')?.classList.contains('active')) {
+                updateBalanceView();
+            }
+            if (document.getElementById('full-analysis-view')?.style.display !== 'none') {
+                 if(typeof updateBalanceView === 'function') {
+                     showBalanceView();
+                     setTimeout(() => document.getElementById('btn-generate-full-report').click(), 100);
+                 }
+            }
+        });
+    }
 
     const savedTheme = localStorage.getItem('theme');
     setTheme(savedTheme === 'light');
@@ -46,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('floatingElements');
         if (!container) return;
         container.innerHTML = '';
-        const elementCount = window.innerWidth > 768 ? 50 : 20; // Menos elementos en móvil
+        const elementCount = window.innerWidth > 768 ? 50 : 20;
         for (let i = 0; i < elementCount; i++) {
             const element = document.createElement('div');
             element.className = 'floating-element';
@@ -92,26 +86,24 @@ function hideAllViews() {
     document.getElementById('form-view').classList.remove('active');
     document.getElementById('balance-view').classList.remove('active');
     
-    // Ocultar la nueva vista de reporte
     const fullAnalysisView = document.getElementById('full-analysis-view');
     if (fullAnalysisView) fullAnalysisView.style.display = 'none';
+
+    const invoicesView = document.getElementById('invoices-view');
+    if (invoicesView) invoicesView.classList.remove('active');
 }
 
 function showDashboard(level) {
     hideAllViews();
     const dashboard = document.getElementById(level + '-dashboard');
-    if (dashboard) {
-        dashboard.classList.add('active');
-    }
+    if (dashboard) dashboard.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function showHero() {
     hideAllViews();
     const hero = document.getElementById('hero');
-    if (hero) {
-        hero.style.display = 'flex';
-    }
+    if (hero) hero.style.display = 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -128,7 +120,6 @@ function showCalendar() {
              if(monthSelect) monthSelect.value = currentDate.getMonth();
              if(yearSelect) yearSelect.value = currentDate.getFullYear();
         }
-        
         updateCalendar();
         delete calendarView.dataset.context; 
     }
@@ -138,10 +129,7 @@ function showCalendar() {
 function showBalanceView() {
     hideAllViews();
     const balanceView = document.getElementById('balance-view');
-    if (balanceView) {
-        balanceView.classList.add('active');
-    }
-
+    if (balanceView) balanceView.classList.add('active');
     if (typeof populateBalanceSelectors === 'function' && typeof updateBalanceView === 'function') {
         populateBalanceSelectors();
         updateBalanceView();
@@ -149,19 +137,20 @@ function showBalanceView() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// =================================================================
-// NUEVA FUNCIÓN PARA MOSTRAR LA VISTA DEL REPORTE FINANCIERO COMPLETO
-// =================================================================
+function showInvoicesView() {
+    hideAllViews();
+    const invoicesView = document.getElementById('invoices-view');
+    if (invoicesView) invoicesView.classList.add('active');
+    if (typeof renderInvoices === 'function') renderInvoices();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function showFullAnalysisReportView() {
     hideAllViews();
     const reportView = document.getElementById('full-analysis-view');
-    if (reportView) {
-        // Usamos 'block' para que el grid funcione correctamente
-        reportView.style.display = 'block'; 
-    }
+    if (reportView) reportView.style.display = 'block'; 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-// =================================================================
 
 function filterFunctions(query, level) {
     const functions = document.querySelectorAll(`#${level}-functions .function-card`);
@@ -177,4 +166,96 @@ function filterFunctions(query, level) {
             card.style.display = 'none';
         }
     });
+}
+
+// =================================================================
+// SISTEMA DE NOTIFICACIONES Y DIÁLOGOS
+// =================================================================
+
+/**
+ * Muestra una notificación personalizada en la pantalla.
+ * @param {string} message - El mensaje que se mostrará.
+ * @param {string} type - El tipo de notificación ('success', 'error', 'info', 'warning').
+ * @param {number} duration - La duración en milisegundos antes de que desaparezca.
+ */
+function showNotification(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `<span>${message}</span><button class="close-btn">&times;</button>`;
+    
+    const closeNotification = () => {
+        notification.classList.remove('show');
+        setTimeout(() => { if (notification.parentElement) notification.parentElement.removeChild(notification); }, 400);
+    };
+
+    notification.querySelector('.close-btn').onclick = closeNotification;
+    container.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 10);
+    setTimeout(closeNotification, duration);
+}
+
+
+/**
+ * Muestra un diálogo de confirmación modal.
+ * @param {object} options - Opciones para el diálogo.
+ * @param {string} options.title - El título del diálogo.
+ * @param {string} options.message - El mensaje principal del diálogo.
+ * @param {string} [options.confirmText='Aceptar'] - Texto del botón de confirmación.
+ * @param {string} [options.cancelText='Cancelar'] - Texto del botón de cancelación.
+ * @param {function} options.onConfirm - Callback que se ejecuta al confirmar.
+ * @param {function} [options.onCancel] - Callback que se ejecuta al cancelar.
+ */
+function showConfirmationDialog({ title, message, confirmText = 'Aceptar', cancelText = 'Cancelar', onConfirm, onCancel }) {
+    // Eliminar cualquier diálogo existente para evitar duplicados
+    const existingDialog = document.getElementById('confirmation-dialog');
+    if (existingDialog) existingDialog.remove();
+
+    // Crear la estructura del diálogo
+    const dialog = document.createElement('div');
+    dialog.className = 'confirmation-overlay';
+    dialog.id = 'confirmation-dialog';
+    dialog.innerHTML = `
+        <div class="confirmation-dialog">
+            <h3 class="confirmation-title">${title}</h3>
+            <p class="confirmation-message">${message}</p>
+            <div class="confirmation-actions">
+                <button id="confirm-btn" class="btn-confirm">${confirmText}</button>
+                <button id="cancel-btn" class="btn-cancel">${cancelText}</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    const confirmBtn = dialog.querySelector('#confirm-btn');
+    const cancelBtn = dialog.querySelector('#cancel-btn');
+    const overlay = dialog;
+
+    const closeDialog = () => {
+        dialog.classList.add('closing');
+        setTimeout(() => dialog.remove(), 300); // Coincide con la animación CSS
+    };
+
+    confirmBtn.addEventListener('click', () => {
+        if (typeof onConfirm === 'function') onConfirm();
+        closeDialog();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        if (typeof onCancel === 'function') onCancel();
+        closeDialog();
+    });
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            if (typeof onCancel === 'function') onCancel();
+            closeDialog();
+        }
+    });
+
+    // Forzar reflow y añadir clase para animar la entrada
+    setTimeout(() => dialog.classList.add('visible'), 10);
 }

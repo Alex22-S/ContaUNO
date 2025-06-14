@@ -4,14 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ContaUNO - Contabilidad Inteligente</title>
+    <link rel="icon" type="image/png" href="images/favicon.png"> 
+
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/calendar.css">
     <link rel="stylesheet" href="CSS/form.css">
     <link rel="stylesheet" href="CSS/balance.css"> 
-    <link rel="stylesheet" href="CSS/analysis.css"> 
+    <link rel="stylesheet" href="CSS/analysis.css">
+    <link rel="stylesheet" href="CSS/invoices.css">
+    <link rel="stylesheet" href="CSS/inventory.css">
+    <link rel="stylesheet" href="CSS/notifications.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.umd.min.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -63,7 +69,7 @@
     </main>
 
     <div class="calendar-view" id="calendar-view">
-        <button class="back-btn" onclick="showDashboard('basic')">← Volver al Dashboard</button>
+        <button class="back-btn" onclick="showDashboard('basic')">← Volver</button>
         <div class="calendar-container">
             <div class="calendar-header">
                 <h2 class="calendar-main-title">Registro de Transacciones</h2>
@@ -123,7 +129,6 @@
             </div>
         </div>
     </div>
-
     <div class="form-view" id="form-view">
         <div class="form-page-layout">
             <div class="form-wrapper">
@@ -158,6 +163,7 @@
                                     <option value="expense">💸 Gasto</option>
                                 </select>
                             </div>
+                            
                             <div class="form-group category-group">
                                 <label for="form-category">Categoría</label>
                                 <div class="category-manager">
@@ -167,17 +173,17 @@
                                     <button type="button" id="delete-category-btn" title="Eliminar Categoría Seleccionada">🗑️</button>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label for="form-amount">Monto</label>
-                                <input type="number" id="form-amount" step="0.01" min="0" required placeholder="1.250.000,00">
+
+                            <div id="standard-fields-group">
+                                <div class="form-group">
+                                    <label for="form-description">Descripción Corta</label>
+                                    <input type="text" id="form-description" required placeholder="Ej: Venta de mercancía, pago de arriendo...">
+                                </div>
                             </div>
+
                         </div>
                         <div class="form-column">
-                            <div class="form-group">
-                                <label for="form-description">Descripción Corta</label>
-                                <input type="text" id="form-description" required placeholder="Ej: Venta de mercancía, pago de arriendo...">
-                            </div>
-                            <div class="form-group">
+                             <div class="form-group">
                                 <label for="form-provider">Proveedor / Cliente (Opcional)</label>
                                 <input type="text" id="form-provider" placeholder="Nombre del tercero">
                             </div>
@@ -191,6 +197,24 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div id="inventory-section" style="display: none; margin-top: 1.5rem;">
+                        <hr class="form-divider">
+                        <h3 class="form-section-title-small">Detalle de Inventario</h3>
+                        <div class="inventory-item-adder">
+                            <select id="inventory-product-select" class="inventory-input"></select>
+                            <input type="number" id="inventory-quantity" placeholder="Cant." min="1" step="1" class="inventory-input quantity">
+                            <input type="number" id="inventory-unit-price" placeholder="Precio Unit." step="0.01" min="0" class="inventory-input price">
+                            <button type="button" id="add-inventory-item-btn" class="btn-add-item">+</button>
+                        </div>
+                        <div id="inventory-items-list-container">
+                            </div>
+                    </div>
+                    <div class="form-group amount-group">
+                        <label for="form-amount">Monto Total</label>
+                        <input type="number" id="form-amount" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+
                     <div class="form-actions-full">
                         <button type="submit" class="save-btn" id="save-transaction-btn">💾 Guardar Transacción</button>
                         <button type="button" class="template-btn" id="save-template-btn">⭐ Guardar Plantilla</button>
@@ -224,9 +248,8 @@
             </div>
         </div>
     </div>
-    
     <div class="balance-view" id="balance-view">
-        <button class="back-btn" onclick="showDashboard('basic')">← Volver al Dashboard</button>
+        <button class="back-btn" onclick="showDashboard('basic')">← Volver</button>
 
         <div class="balance-container">
             <div class="balance-header">
@@ -239,51 +262,51 @@
 
             <div class="balance-view-toggle">
                 <button id="btn-weekly-view" class="active" onclick="switchBalanceView('weekly')">🗓️ Semanal</button>
-                <button id="btn-monthly-view" disabled>📊 Mensual</button>
-                <button id="btn-annual-view" disabled>🚀 Anual</button>
+                <button id="btn-monthly-view" onclick="switchBalanceView('monthly')">📊 Mensual</button>
+                <button id="btn-annual-view" onclick="switchBalanceView('annual')">🚀 Anual</button>
             </div>
 
-            <div id="weekly-content" class="balance-content-view">
+            <div id="balance-content-container" class="balance-content-view active">
                 <div class="monthly-summary-panel">
                     <div class="monthly-summary-header">
-                        <h3 class="monthly-summary-title">Resumen Total del Mes</h3>
-                        <button id="download-month-summary-pdf" class="pdf-btn-main" title="Descargar Resumen Mensual en PDF">
+                        <h3 class="monthly-summary-title" id="summary-period-title">Resumen Total del Mes</h3>
+                        <button id="download-summary-pdf" class="pdf-btn-main" title="Descargar Resumen en PDF">
                             <span class="icon">📄</span>
-                            Descargar PDF del Mes
+                            Descargar PDF
                         </button>
                     </div>
                     <div class="monthly-summary-cards">
                         <div class="summary-card-balance income">
-                            <span class="summary-label">Ingresos del Mes</span>
-                            <span class="summary-value" id="total-month-income">$0</span>
+                            <span class="summary-label">Ingresos del Periodo</span>
+                            <span class="summary-value" id="total-period-income">$0</span>
                         </div>
                         <div class="summary-card-balance expense">
-                            <span class="summary-label">Gastos del Mes</span>
-                            <span class="summary-value" id="total-month-expenses">$0</span>
+                            <span class="summary-label">Gastos del Periodo</span>
+                            <span class="summary-value" id="total-period-expenses">$0</span>
                         </div>
                         <div class="summary-card-balance balance">
-                            <span class="summary-label">Balance Mensual</span>
-                            <span class="summary-value" id="total-month-balance">$0</span>
+                            <span class="summary-label">Balance del Periodo</span>
+                            <span class="summary-value" id="total-period-balance">$0</span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="weekly-breakdown" id="weekly-breakdown-container">
+                <div class="breakdown-container" id="balance-breakdown-container">
                 </div>
 
                 <div class="charts-section">
                     <div class="chart-container">
                         <h3 class="chart-title">Ingresos vs. Gastos (Dona)</h3>
                         <div class="canvas-wrapper">
-                            <canvas id="monthly-summary-chart"></canvas>
+                            <canvas id="period-summary-chart"></canvas>
                         </div>
-                        </div>
+                    </div>
                     <div class="chart-container">
-                        <h3 class="chart-title">Balance Semanal (Barras)</h3>
+                        <h3 class="chart-title" id="bar-chart-title">Balance Semanal (Barras)</h3>
                         <div class="canvas-wrapper">
-                            <canvas id="weekly-bar-chart"></canvas>
+                            <canvas id="balance-bar-chart"></canvas>
                         </div>
-                        </div>
+                    </div>
                 </div>
 
                 <div class="full-report-section">
@@ -295,7 +318,108 @@
             </div>
         </div>
     </div>
+    
+    <div class="invoices-view" id="invoices-view">
+        <button class="back-btn" onclick="showDashboard('basic')">← Volver</button>
+        <div class="invoices-container">
+            <div class="invoices-header">
+                <h2 class="invoices-main-title">Gestión de Facturas</h2>
+                <p>Crea, visualiza y administra tus facturas de venta de forma sencilla.</p>
+                <button class="btn-settings" id="btn-open-settings">⚙️ Configuración</button>
+            </div>
+            <div class="invoices-layout">
+                <div class="invoice-form-container">
+                    <h3 class="form-section-title">Nueva Factura</h3>
+                    <form id="invoice-form">
+                        <input type="hidden" id="editing-invoice-id">
+                        
+                        <div class="form-grid">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="client-name">Nombre del Cliente</label>
+                                    <input type="text" id="client-name" required placeholder="Ej: John Doe">
+                                </div>
+                                <div class="form-group">
+                                    <label for="client-id">NIT / C.C. del Cliente</label>
+                                    <input type="text" id="client-id" required placeholder="Ej: 123456789-0">
+                                </div>
+                                 <div class="form-group">
+                                    <label for="client-address">Dirección (Opcional)</label>
+                                    <input type="text" id="client-address" placeholder="Ej: Calle 50 # 40 - 30">
+                                </div>
+                                <div class="form-group">
+                                    <label for="client-phone">Teléfono (Opcional)</label>
+                                    <input type="tel" id="client-phone" placeholder="Ej: 3001234567">
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="invoice-number">Nº de Factura</label>
+                                    <input type="text" id="invoice-number" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="issue-date">Fecha de Emisión</label>
+                                    <input type="date" id="issue-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="due-date">Fecha de Vencimiento</label>
+                                    <input type="date" id="due-date" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr style="border-color: var(--card-border); margin: 1.5rem 0;">
+                        
+                        <h4 style="margin-bottom: 1rem; color: var(--text-secondary);">Ítems de la Factura</h4>
+                        <div id="invoice-items-container"></div>
+                        <button type="button" id="add-invoice-item-btn" class="btn-secondary">+ Añadir Ítem</button>
+                        
+                        <div class="invoice-totals-breakdown" style="margin-top: 1.5rem;">
+                            <div class="total-row">
+                                <span>Subtotal</span>
+                                <span id="subtotal-display">$0</span>
+                            </div>
+                            <div class="form-grid-2-col">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="invoice-discount">Descuento (%)</label>
+                                    <input type="number" id="invoice-discount" value="0" min="0" max="100">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="invoice-tax">Impuesto (%)</label>
+                                    <input type="number" id="invoice-tax" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="total-row">
+                                <span>Descuento</span>
+                                <span id="discount-display">-$0</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Impuestos</span>
+                                <span id="tax-display">+$0</span>
+                            </div>
+                            <div class="total-row grand-total">
+                                <span>TOTAL</span>
+                                <span id="total-display">$0</span>
+                            </div>
+                        </div>
 
+                         <div class="form-group" style="margin-top: 1.5rem;">
+                            <label for="invoice-notes">Notas / Términos (Opcional)</label>
+                            <textarea id="invoice-notes" rows="3" placeholder="Términos y condiciones, agradecimientos, etc."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-main-action">💾 Guardar Factura</button>
+                    </form>
+                </div>
+                <div class="invoice-list-container">
+                    <h3 class="list-section-title">Facturas Emitidas</h3>
+                    <div id="invoices-list">
+                        <p>No hay facturas registradas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="dashboard" id="basic-dashboard">
         <button class="back-btn" onclick="showHero()">← Volver</button>
         <div class="dashboard-header">
@@ -316,13 +440,13 @@
                 <h4 class="function-title">Balance Simple</h4>
                 <p class="function-description">Ve cuánto tienes vs cuánto debes de forma clara.</p>
             </div>
-            <div class="function-card">
+            <div class="function-card" onclick="showInvoicesView()">
                 <h4 class="function-title">Facturas Básicas</h4>
                 <p class="function-description">Crea facturas profesionales en minutos.</p>
             </div>
-            <div class="function-card">
-                <h4 class="function-title">Control de Inventario</h4>
-                <p class="function-description">Gestiona tu stock de productos básicos.</p>
+            <div class="function-card" onclick="showInventoryView()">
+                <h4 class="function-title">📦 Control de Inventario</h4>
+                <p class="function-description">Gestiona tu stock de productos, costos y precios.</p>
             </div>
             <div class="function-card">
                 <h4 class="function-title">Registro de ahorros</h4>
@@ -342,15 +466,13 @@
             </div>
         </div>
     </div>
-
     <div class="dashboard" id="intermediate-dashboard">
         <button class="back-btn" onclick="showHero()">← Volver</button>
-    </div>
+        </div>
 
     <div class="dashboard" id="advanced-dashboard">
         <button class="back-btn" onclick="showHero()">← Volver</button>
-    </div>
-
+        </div>
     <div class="analysis-report-view" id="full-analysis-view">
         <button class="back-btn" onclick="showBalanceView()">← Volver al Balance</button>
         <div class="analysis-container">
@@ -380,7 +502,7 @@
 
             <div class="analysis-charts-grid">
                 <div class="analysis-chart-container">
-                    <h3 class="analysis-card-title">Flujo de Dinero Diario</h3>
+                    <h3 class="analysis-card-title" id="flow-chart-title">Flujo de Dinero Diario</h3>
                     <div class="canvas-wrapper-analysis">
                         <canvas id="daily-flow-chart"></canvas>
                     </div>
@@ -401,7 +523,7 @@
 
             <div class="category-tables-grid">
                 <div class="category-table-container">
-                    <h3 class="analysis-card-title">Ingresos por Categoría</h3>
+                    <h3 class="analysis-card-title" id="income-table-title">Ingresos por Categoría</h3>
                     <div class="table-wrapper">
                         <table id="category-income-table">
                             <thead>
@@ -417,7 +539,7 @@
                     </div>
                 </div>
                 <div class="category-table-container">
-                    <h3 class="analysis-card-title">Gastos por Categoría</h3>
+                    <h3 class="analysis-card-title" id="expense-table-title">Gastos por Categoría</h3>
                     <div class="table-wrapper">
                         <table id="category-expense-table">
                             <thead>
@@ -440,30 +562,276 @@
                         <span class="icon">✅</span> Puntos Positivos
                     </h3>
                     <div id="positive-insights-content">
-                        </div>
+                    </div>
                 </div>
                 <div class="insight-column">
                     <h3 class="insight-column-title">
                         <span class="icon">⚠️</span> Áreas de Atención
                     </h3>
                     <div id="attention-insights-content">
-                        </div>
+                    </div>
                 </div>
                 <div class="insight-column">
                     <h3 class="insight-column-title">
                         <span class="icon">💡</span> Sugerencias y Oportunidades
                     </h3>
                     <div id="recommendation-insights-content">
-                        </div>
+                    </div>
                 </div>
             </div>
-            </div>
+        </div>
     </div>
     
+    <div class="invoices-view" id="inventory-view" style="display: none;"> <button class="back-btn" onclick="showDashboard('basic')">← Volver</button>
+        <div class="invoices-container">
+            <div class="invoices-header">
+                <h2 class="invoices-main-title">Gestión de Inventario</h2>
+                <p>Añade, edita y controla el stock de tus productos.</p>
+            </div>
+            <div class="invoices-layout">
+                <div class="invoice-form-container">
+                    <h3 class="form-section-title" id="product-form-title">Añadir Nuevo Producto</h3>
+                    <form id="inventory-form">
+                        <input type="hidden" id="editing-product-id">
+                        
+                        <div class="form-grid">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label for="product-name">Nombre del Producto</label>
+                                    <input type="text" id="product-name" required placeholder="Ej: Camiseta T-Shirt Negra">
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-sku">SKU / Código (Opcional)</label>
+                                    <input type="text" id="product-sku" placeholder="Ej: CAM-NEG-001">
+                                </div>
+                                 <div class="form-group">
+                                    <label for="product-description">Descripción</label>
+                                    <textarea id="product-description" rows="3" placeholder="Detalles del producto, material, talla, etc."></textarea>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                 <div class="form-group">
+                                    <label for="product-category">Categoría de Producto</label>
+                                    <input type="text" id="product-category" list="product-categories-list" required placeholder="Ej: Ropa, Accesorios">
+                                    <datalist id="product-categories-list"></datalist>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-cost">Costo de Compra (Unitario)</label>
+                                    <input type="number" id="product-cost" step="0.01" min="0" required placeholder="Precio al que compras">
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-price">Precio de Venta (Unitario)</label>
+                                    <input type="number" id="product-price" step="0.01" min="0" required placeholder="Precio al que vendes">
+                                </div>
+                                <div class="form-group">
+                                    <label for="initial-stock">Stock Inicial</label>
+                                    <input type="number" id="initial-stock" step="1" min="0" required placeholder="Cantidad inicial">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-main-action" id="save-product-btn">💾 Guardar Producto</button>
+                         <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display: none;">Cancelar Edición</button>
+                    </form>
+                </div>
+
+                <div class="invoice-list-container">
+                    <h3 class="list-section-title">Listado de Productos</h3>
+                    <div class="form-group">
+                         <input type="text" id="product-search-input" class="search-input" placeholder="🔍 Buscar por nombre, SKU o categoría...">
+                    </div>
+                    <div class="table-wrapper" style="max-height: 45vh; overflow-y: auto;">
+                        <table id="product-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Stock Actual</th>
+                                    <th>Costo Ponderado</th>
+                                    <th>Precio Venta</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                     <div id="product-list-empty" style="text-align: center; padding: 2rem; display: none;">
+                        <p>No hay productos registrados.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="invoices-header" style="margin-top: 2rem;">
+                <h2 class="invoices-main-title">Historial de Movimientos</h2>
+                <p>Registro de todas las entradas y salidas de inventario.</p>
+            </div>
+            <div class="table-wrapper" style="max-height: 40vh; overflow-y: auto;">
+                <table id="inventory-history-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Valor Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-history-body">
+                        </tbody>
+                </table>
+            </div>
+            <div id="inventory-history-empty" style="text-align: center; padding: 2rem; display: none;">
+                <p>No hay movimientos de inventario registrados.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="weekly-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-header-text">
+                    <h2>Detalle de Transacciones</h2>
+                    <p id="modal-week-range">Rango de fechas de la semana</p>
+                </div>
+                <span class="close-btn" id="modal-close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrapper-modal">
+                    <table id="modal-transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-table-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="modal-summary-section">
+                    <div class="summary-box">
+                        <h4 class="summary-box-title">Subtotales</h4>
+                        <div class="summary-line">
+                            <span>Ingreso</span>
+                            <span class="positive-value" id="modal-subtotal-income">$0</span>
+                        </div>
+                        <div class="summary-line">
+                            <span>Egreso</span>
+                            <span class="negative-value" id="modal-subtotal-expense">$0</span>
+                        </div>
+                    </div>
+                    <div class="summary-box total-box">
+                        <h4 class="summary-box-title">Total Neto</h4>
+                        <div class="summary-line">
+                            <span id="modal-final-total">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-btn">&times;</span>
+            <h3 class="form-section-title">Configuración de la Empresa</h3>
+            <form id="settings-form">
+                <div class="form-group">
+                    <label>Logo de la Empresa</label>
+                    <input type="file" id="company-logo-input" accept="image/*">
+                    <img id="logo-preview" src="" alt="Vista previa del logo" style="max-width: 150px; margin-top: 10px;">
+                </div>
+                <div class="form-group"><label for="myCompanyName">Nombre de tu Empresa</label><input type="text" id="myCompanyName" name="myCompanyName" placeholder="Tu Empresa S.A.S."></div>
+                <div class="form-group"><label for="myCompanyNit">NIT / C.C.</label><input type="text" id="myCompanyNit" name="myCompanyNit" placeholder="900123456-7"></div>
+                <div class="form-group"><label for="myCompanyAddress">Dirección</label><input type="text" id="myCompanyAddress" name="myCompanyAddress" placeholder="Carrera 1 # 2 - 3, Bogotá"></div>
+                <div class="form-group"><label for="myCompanyPhone">Teléfono</label><input type="tel" id="myCompanyPhone" name="myCompanyPhone" placeholder="3109876543"></div>
+                <button type="submit" class="btn-main-action" style="margin-top: 1rem;">Guardar Configuración</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="invoice-preview-modal" class="modal">
+        <div class="modal-content-invoice">
+            <span class="modal-close-btn">&times;</span>
+            <div id="invoice-preview-content">
+                <div class="invoice-preview-header">
+                    <img id="preview-logo" src="" alt="Logo de la Empresa" class="company-logo-preview">
+                    <div class="invoice-preview-header-right">
+                        <h2 id="preview-invoice-title">FACTURA</h2>
+                        <p id="preview-invoice-id"></p>
+                    </div>
+                </div>
+
+                <div class="invoice-preview-parties">
+                    <div class="company-info">
+                        <h4>DE:</h4>
+                        <p><strong id="my-company-name"></strong></p>
+                        <p id="my-company-details" style="white-space: pre-wrap;"></p>
+                    </div>
+                    <div class="client-info">
+                        <h4>PARA:</h4>
+                        <p><strong id="client-info-name"></strong></p>
+                        <p id="client-info-details" style="white-space: pre-wrap;"></p>
+                    </div>
+                </div>
+
+                <div class="invoice-preview-dates">
+                    <div><h4>Fecha Emisión:</h4><p id="preview-issue-date"></p></div>
+                    <div style="text-align: right;"><h4>Fecha Vencimiento:</h4><p id="preview-due-date"></p></div>
+                </div>
+
+                <div class="invoice-table-container">
+                    <table class="invoice-items-table">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th class="text-right">Cant.</th>
+                                <th class="text-right">P. Unit.</th>
+                                <th class="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-items-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div class="invoice-preview-summary">
+                    <div class="invoice-preview-notes">
+                        <h4>Notas:</h4>
+                        <p id="preview-notes"></p>
+                    </div>
+                    <div class="invoice-preview-totals">
+                        <table>
+                            <tr><td>Subtotal:</td><td class="text-right" id="preview-subtotal"></td></tr>
+                            <tr><td>Descuento:</td><td class="text-right" id="preview-discount"></td></tr>
+                            <tr><td>Impuestos:</td><td class="text-right" id="preview-tax"></td></tr>
+                            <tr class="grand-total-row">
+                                <td>TOTAL:</td>
+                                <td class="text-right" id="preview-grand-total"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-mark-paid" class="btn-action secondary">Marcar como Pagada</button>
+                <button id="btn-download-pdf" class="btn-action primary">Descargar PDF</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification-container"></div>
+
     <script src="JS/scripts.js"></script>
     <script src="JS/calendar.js"></script>
-    <script src="JS/form.js"></script>
     <script src="JS/balance.js"></script>
     <script src="JS/analysis.js"></script>
+    <script src="JS/invoices.js"></script>
+    <script src="JS/inventory.js"></script>
+    <script src="JS/notifications.js"></script>
 </body>
 </html>

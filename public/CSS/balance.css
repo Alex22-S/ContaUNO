@@ -101,6 +101,15 @@ body.light-mode .balance-view-toggle button:hover:not(:disabled) {
     cursor: not-allowed;
 }
 
+.balance-content-view {
+    display: none;
+}
+.balance-content-view.active {
+    display: block;
+    animation: fadeIn 0.4s ease-out;
+}
+
+
 /* --- Panel de Resumen Mensual --- */
 .monthly-summary-panel {
     background: rgba(0, 0, 0, 0.1);
@@ -193,39 +202,41 @@ body.light-mode .summary-card-balance.balance {
 }
 
 
-/* --- Desglose Semanal --- */
-#weekly-breakdown-container {
+/* --- Desglose Semanal, Mensual y Anual --- */
+.breakdown-container {
     display: grid;
-    /* CORREGIDO: Se cambió 'auto-fit' por 'auto-fill'.
-      'auto-fill' previene que las tarjetas se estiren para llenar el espacio si hay pocas en una fila,
-      manteniendo así su apariencia de "cuadrito".
-    */
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
 }
 
-.week-card {
+.week-card, .month-card, .year-card {
     background: rgba(0,0,0,0.15);
     border: 1px solid var(--card-border);
     border-radius: 15px;
     padding: 1.5rem;
     transition: all 0.3s ease;
+    display: flex; 
+    flex-direction: column;
 }
 
-body.light-mode .week-card {
+body.light-mode .week-card, 
+body.light-mode .month-card,
+body.light-mode .year-card {
     background: #fdfdff;
 }
 
-.week-card:hover {
+.week-card:hover, .month-card:hover, .year-card:hover {
     transform: translateY(-5px);
     border-color: var(--input-focus-border);
 }
 
-body.light-mode .week-card:hover {
+body.light-mode .week-card:hover,
+body.light-mode .month-card:hover,
+body.light-mode .year-card:hover {
     border-color: var(--primary);
 }
 
-.week-card-header {
+.week-card-header, .month-card-header, .year-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -234,7 +245,7 @@ body.light-mode .week-card:hover {
     border-bottom: 1px solid var(--card-border);
 }
 
-.week-card-header h4 {
+.week-card-header h4, .month-card-header h4, .year-card-header h4 {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -260,30 +271,32 @@ body.light-mode .week-card:hover {
     cursor: not-allowed;
 }
 
-.week-card-body {
+.week-card-body, .month-card-body, .year-card-body {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    flex-grow: 1;
 }
 
-.week-stat {
+.week-stat, .month-stat, .year-stat {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
 }
 
-.week-stat .label {
+.week-stat .label, .month-stat .label, .year-stat .label {
     font-size: 0.9rem;
     color: var(--text-secondary);
 }
 
-.week-stat .value {
+.week-stat .value, .month-stat .value, .year-stat .value {
     font-size: 1.2rem;
     font-weight: 700;
 }
 
-.week-stat .value.positive { color: #10b981; }
-.week-stat .value.negative { color: #ef4444; }
+.week-stat .value.positive, .month-stat .value.positive, .year-stat .value.positive { color: #10b981; }
+.week-stat .value.negative, .month-stat .value.negative, .year-stat .value.negative { color: #ef4444; }
+
 
 /* --- SECCIÓN DE DIAGRAMAS --- */
 .charts-section {
@@ -379,4 +392,283 @@ body.light-mode .chart-container {
     .balance-container {
         padding: 1rem;
     }
+}
+
+.week-card-header, .month-card-header, .year-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.week-card-pills, .month-card-pills, .year-card-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.week-tx-count, .month-tx-count, .year-tx-count {
+    background-color: var(--primary-color-light); 
+    color: var(--primary-color-dark);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.week-card-date, .month-card-date, .year-card-date {
+    font-weight: 400;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+/* ============================================================== */
+/* === CÓDIGO MODIFICADO Y AÑADIDO: ESTILOS PARA MODAL === */
+/* ============================================================== */
+
+.view-details-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: auto; 
+    align-self: flex-start;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.view-details-btn:hover {
+    background-color: var(--primary-light);
+    transform: scale(1.05);
+}
+
+.view-details-btn:disabled {
+    background-color: var(--text-secondary);
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+    animation: fadeIn 0.3s ease-in-out;
+    display: flex; /* Centra el contenido del modal */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    padding: 0; /* Eliminamos el padding para controlar el layout con flexbox */
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    animation: slideIn 0.4s ease-out;
+
+    /* --- CORRECCIÓN: Tamaño grande y proporcional --- */
+    width: 70vw;           /* 85% del ancho de la pantalla */
+    height: 75vh;          /* 90% del alto de la pantalla */
+    max-width: 1600px;     /* Límite para pantallas muy grandes */
+    max-height: 1000px;    /* Límite de altura */
+
+    /* --- CORRECCIÓN: Layout con Flexbox para organizar el contenido --- */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Muy importante para que el scroll interno funcione */
+}
+
+.modal-header {
+    padding: 20px 25px;
+    flex-shrink: 0; /* El header no se encoge */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.modal-header-text h2 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.6rem;
+}
+
+.modal-header-text p {
+    margin: 5px 0 0;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.close-btn {
+    color: var(--text-secondary);
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #ef4444;
+    text-decoration: none;
+}
+
+.modal-body {
+    flex-grow: 1; /* El cuerpo del modal ocupa todo el espacio sobrante */
+    padding: 20px 25px 25px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Soluciona un bug de flexbox con contenido que se desborda */
+}
+
+
+.table-wrapper-modal {
+    flex-grow: 1; /* El contenedor de la tabla crece para llenar el body */
+    overflow-y: auto; /* SOLO este elemento tendrá scroll vertical */
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    min-height: 0; /* Soluciona bug de flexbox */
+}
+
+.modal table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Clave para anchos de columna definidos */
+}
+
+.modal th, .modal td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--card-border);
+    word-wrap: break-word;
+}
+
+/* Anchos de columna optimizados */
+.modal th:nth-child(1), .modal td:nth-child(1) { width: 12%; } /* Fecha */
+.modal th:nth-child(2), .modal td:nth-child(2) { width: 40%; } /* Descripción */
+.modal th:nth-child(3), .modal td:nth-child(3) { width: 20%; } /* Categoría */
+.modal th:nth-child(4), .modal td:nth-child(4) { width: 13%; } /* Tipo */
+.modal th:nth-child(5), .modal td:nth-child(5) { width: 15%; text-align: right; } /* Valor */
+
+
+.modal tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+.modal th {
+    background-color: var(--input-bg);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modal tbody tr:hover {
+    background-color: var(--input-bg);
+}
+
+.modal td.positive-value, .modal td.negative-value {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.modal .positive-value { color: #10b981; }
+.modal .negative-value { color: #ef4444; }
+
+.modal-summary-section {
+    flex-shrink: 0; /* El resumen no se encoge */
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--card-border);
+    flex-wrap: wrap;
+    margin-top: auto; /* Empuja el resumen hacia abajo */
+}
+
+.summary-box {
+    background-color: var(--input-bg);
+    padding: 15px;
+    border-radius: 8px;
+    width: 280px;
+}
+
+.summary-box-title {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 10px;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.summary-line:last-child {
+    margin-bottom: 0;
+}
+
+.summary-line span:first-child {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.summary-line span:last-child {
+    font-weight: 700;
+}
+
+.total-box {
+    background-color: transparent;
+    border: 2px solid var(--primary);
+}
+.total-box .summary-box-title {
+    color: var(--primary);
+    border-bottom-color: var(--primary-light);
+}
+.total-box .summary-line span {
+    font-size: 1.5rem;
+    font-weight: 700;
+    width: 100%;
+    text-align: right;
+}
+
+
+@media (max-width: 1200px) {
+    .modal-content {
+        width: 95vw;
+        height: 95vh;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .modal th, .modal td {
+        padding: 8px;
+    }
+    .modal-summary-section {
+        justify-content: center;
+    }
+    .summary-box {
+        width: 100%;
+    }
+    .modal th:nth-child(2), .modal td:nth-child(2) { width: 30%; } 
+    .modal th:nth-child(3), .modal td:nth-child(3) { width: 25%; } 
 }

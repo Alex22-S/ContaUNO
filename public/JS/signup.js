@@ -3,10 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lógica del tema claro/oscuro
     const themeToggle = document.getElementById('theme-toggle');
-    const savedTheme = localStorage.getItem('theme');
-    document.body.classList.toggle('light-mode', savedTheme === 'light');
-    if (themeToggle) themeToggle.checked = (savedTheme === 'light');
     if (themeToggle) {
+        const savedTheme = localStorage.getItem('theme');
+        document.body.classList.toggle('light-mode', savedTheme === 'light');
+        themeToggle.checked = (savedTheme === 'light');
         themeToggle.addEventListener('change', () => {
             document.body.classList.toggle('light-mode', themeToggle.checked);
             localStorage.setItem('theme', themeToggle.checked ? 'light' : 'dark');
@@ -22,35 +22,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const passwordConfirm = document.getElementById('signup-password-confirm').value;
             const errorDisplay = document.getElementById('signup-error');
 
-            errorDisplay.textContent = ''; // Limpiar errores
+            errorDisplay.textContent = '';
 
-            if (!username || !password || !passwordConfirm) {
-                errorDisplay.textContent = 'Todos los campos son obligatorios.';
-                return;
-            }
-            if (password.length < 6) {
-                errorDisplay.textContent = 'La contraseña debe tener al menos 6 caracteres.';
-                return;
-            }
-            if (password !== passwordConfirm) {
-                errorDisplay.textContent = 'Las contraseñas no coinciden.';
-                return;
-            }
+            if (!username || !password || !passwordConfirm) { errorDisplay.textContent = 'Todos los campos son obligatorios.'; return; }
+            if (password.length < 6) { errorDisplay.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
+            if (password !== passwordConfirm) { errorDisplay.textContent = 'Las contraseñas no coinciden.'; return; }
 
             try {
-                // --- LÍNEA CORREGIDA ---
-                // Se cambia la URL absoluta por una ruta relativa para que funcione en producción.
                 const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-
                 const data = await response.json();
 
                 if (response.status === 201) {
-                    alert("¡Usuario registrado con éxito! Serás redirigido para iniciar sesión.");
-                    window.location.href = 'login.html'; // Redirige al login
+                    // --- CORRECCIÓN AQUÍ ---
+                    // Reemplazamos alert() por showNotification.
+                    // IMPORTANTE: Esto solo funcionará si 'signup.html' carga los archivos
+                    // 'notifications.css' y 'scripts.js' al igual que 'index.html'.
+                    if(typeof showNotification === 'function') {
+                        showNotification("¡Usuario registrado con éxito! Redirigiendo...", 'success');
+                        setTimeout(() => {
+                           window.location.href = 'login.html';
+                        }, 2500);
+                    } else {
+                        // Respaldo por si los scripts no están cargados
+                        alert("¡Usuario registrado con éxito! Serás redirigido para iniciar sesión.");
+                        window.location.href = 'login.html';
+                    }
                 } else {
                     errorDisplay.textContent = data.message;
                 }

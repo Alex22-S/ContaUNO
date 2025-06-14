@@ -1,0 +1,177 @@
+/* Contenedor principal para las notificaciones */
+#notification-container {
+    position: fixed; /* Se mantiene fijo en la pantalla */
+    top: 20px;
+    right: 20px;
+    z-index: 9999; /* Asegura que esté por encima de todo */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre notificaciones */
+}
+
+/* Estilo base para cada notificación */
+.notification {
+    min-width: 300px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Poppins', sans-serif; /* O la fuente que uses */
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    
+    /* Animación de entrada */
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+/* Estilo para cuando la notificación está visible */
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Botón para cerrar la notificación */
+.notification .close-btn {
+    font-size: 20px;
+    font-weight: bold;
+    color: inherit; /* Hereda el color del texto de la notificación */
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.notification .close-btn:hover {
+    opacity: 1;
+}
+
+/* ---- Tipos de Notificación ---- */
+
+/* Éxito (Verde) */
+.notification.success {
+    background-color: #28a745;
+    border-left: 5px solid #218838;
+}
+
+/* Error (Rojo) */
+.notification.error {
+    background-color: #dc3545;
+    border-left: 5px solid #c82333;
+}
+
+/* Información (Azul) */
+.notification.info {
+    background-color: #17a2b8;
+    border-left: 5px solid #138496;
+}
+
+/* Advertencia (Amarillo) */
+.notification.warning {
+    background-color: #ffc107;
+    border-left: 5px solid #e0a800;
+    color: #212529; /* Texto oscuro para mejor contraste */
+}
+
+/* ======================================== */
+/* ESTILOS PARA DIÁLOGO DE CONFIRMACIÓN   */
+/* ======================================== */
+
+.confirmation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.confirmation-overlay.visible {
+    opacity: 1;
+}
+
+.confirmation-overlay.closing {
+    opacity: 0;
+}
+
+.confirmation-dialog {
+    background-color: var(--background-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    border: 1px solid var(--card-border);
+    transform: scale(0.9);
+    transition: transform 0.3s ease-in-out;
+}
+
+.confirmation-overlay.visible .confirmation-dialog {
+    transform: scale(1);
+}
+
+.confirmation-overlay.closing .confirmation-dialog {
+    transform: scale(0.9);
+}
+
+
+.confirmation-title {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+
+.confirmation-message {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.confirmation-actions button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirmation-actions .btn-confirm {
+    background-color: #dc3545; /* Rojo para acciones destructivas */
+    color: #fff;
+}
+.confirmation-actions .btn-confirm:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+.confirmation-actions .btn-cancel {
+    background-color: var(--card-background);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+}
+
+.confirmation-actions .btn-cancel:hover {
+    background-color: var(--hover-color);
+}

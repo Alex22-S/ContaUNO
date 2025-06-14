@@ -56,19 +56,15 @@
     min-width: 120px;
 }
 
-/* === CORRECCIÓN 1: Estilos para las opciones del selector en modo oscuro === */
-/* Nota: La compatibilidad puede variar entre navegadores. */
 .calendar-controls select option {
-    background: #1a1a3e; /* Un color oscuro del fondo de tu paleta */
+    background: #1a1a3e;
     color: #ffffff;
 }
 
 body.light-mode .calendar-controls select option {
-    background: #ffffff; /* Fondo blanco para modo claro */
-    color: #1e293b;   /* Texto oscuro para modo claro */
+    background: #ffffff;
+    color: #1e293b;
 }
-/* === FIN DE LA CORRECCIÓN 1 === */
-
 
 .calendar-controls select:focus {
     outline: none;
@@ -84,24 +80,24 @@ body.light-mode .calendar-controls select option {
 
 .calendar-grid-container {
     overflow: hidden;
-    background: var(--card-bg); /* Color de fondo para la grilla */
-    border-radius: 15px; /* Bordes redondeados para la grilla */
+    background: var(--card-bg);
+    border-radius: 15px;
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 1px; /* Espacio entre celdas que formará las líneas */
-    background-color: var(--card-border); /* Color de las líneas */
-    border: 1px solid var(--card-border); /* Borde exterior */
+    gap: 1px;
+    background-color: var(--card-border);
+    border: 1px solid var(--card-border);
     overflow: hidden;
     border-radius: 15px;
 }
 
 .calendar-day-header {
     text-align: center;
-    font-weight: 700; /* NUEVO: Color y grosor para resaltar */
-    color: var(--input-focus-border); /* NUEVO: Color y grosor para resaltar */
+    font-weight: 700;
+    color: var(--input-focus-border);
     padding: 0.75rem 0;
     font-size: 0.9rem;
     text-transform: uppercase;
@@ -116,7 +112,7 @@ body.light-mode .calendar-controls select option {
     transition: background-color 0.3s ease, border-left-color 0.3s ease;
     display: flex;
     flex-direction: column;
-    border-left: 4px solid transparent; /* Espacio para el indicador de color */
+    border-left: 4px solid transparent;
 }
 
 .calendar-day:hover {
@@ -156,7 +152,6 @@ body.light-mode .calendar-day.other-month:hover {
     justify-content: center;
 }
 
-/* === NUEVOS ESTILOS PARA BALANCE DIARIO === */
 .calendar-day.day-positive-balance {
     background-color: rgba(16, 185, 129, 0.1);
     border-left-color: #10b981;
@@ -173,7 +168,6 @@ body.light-mode .calendar-day.other-month:hover {
     background-color: rgba(239, 68, 68, 0.2);
 }
 
-
 .day-number {
     font-weight: 600;
     font-size: 0.9rem;
@@ -181,7 +175,7 @@ body.light-mode .calendar-day.other-month:hover {
 }
 
 .day-transactions {
-    font-size: 0.85rem; /* Ajustado para que quepa mejor */
+    font-size: 0.85rem;
     font-weight: 700;
     line-height: 1.5;
     margin-top: auto;
@@ -189,7 +183,6 @@ body.light-mode .calendar-day.other-month:hover {
     text-align: right;
 }
 
-/* === NUEVO: Colores para el texto del balance diario === */
 .day-transactions.positive {
     color: #10b981;
 }
@@ -255,20 +248,13 @@ body.light-mode .calendar-summary {
 .summary-card.balance .summary-value.negative { color: #ef4444; }
 
 /* === ESTILOS RESPONSIVOS === */
-
-/* === CORRECCIÓN 2: Se cambia a Flexbox para apilar los elementos correctamente === */
 @media (max-width: 1024px) {
     .calendar-content {
-        /* Se cambia de grid a flex para apilar verticalmente */
         display: flex;
         flex-direction: column;
     }
     .calendar-summary {
-        /* El order: -1; ya no es necesario, pero lo podemos dejar si quieres que el resumen vaya arriba */
-        /* Si quieres el resumen abajo (lo más común), simplemente elimina la propiedad order */
         order: -1; 
-        
-        /* Estas propiedades son para distribuir las tarjetas de resumen horizontalmente */
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: space-around;
@@ -276,11 +262,9 @@ body.light-mode .calendar-summary {
     }
     .summary-card {
         flex-grow: 1;
-        flex-basis: 200px; /* Las tarjetas tendrán una base de 200px y crecerán para ocupar el espacio */
+        flex-basis: 200px;
     }
 }
-/* === FIN DE LA CORRECCIÓN 2 === */
-
 
 @media (max-width: 768px) {
     .calendar-view { padding: 80px 1rem 1rem; }
@@ -301,4 +285,133 @@ body.light-mode .calendar-summary {
         padding: 0.5rem;
         font-size: 0.8rem;
     }
+}
+
+/* === NUEVO: ESTILOS PARA SECCIÓN DE INVENTARIO EN FORMULARIO === */
+
+.inventory-item-adder {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.inventory-item-adder .inventory-input {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.inventory-item-adder .inventory-input:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    box-shadow: var(--input-focus-shadow);
+}
+
+.inventory-item-adder #inventory-product-select {
+    flex-grow: 1;
+}
+
+.inventory-item-adder #inventory-quantity {
+    width: 80px;
+    text-align: center;
+}
+
+.inventory-item-adder #inventory-unit-price {
+    width: 130px;
+}
+
+.inventory-item-adder .btn-add-item {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--primary);
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 2px; /* Alineación vertical del + */
+}
+
+.inventory-item-adder .btn-add-item:hover {
+    background-color: var(--primary-light);
+    transform: scale(1.1) rotate(90deg);
+}
+
+.inventory-items-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inventory-list-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(0,0,0,0.1);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+}
+body.light-mode .inventory-list-item {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.inventory-list-item .item-name {
+    flex-grow: 1;
+    font-weight: 600;
+}
+
+.inventory-list-item .item-details {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+    
+.inventory-list-item .item-total {
+    font-weight: bold;
+    min-width: 110px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.inventory-list-item .btn-remove-item {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s, transform 0.2s;
+    line-height: 1;
+}
+
+.inventory-list-item .btn-remove-item:hover {
+    color: #ef4444; /* red */
+    transform: scale(1.2);
+}
+
+.no-items-msg {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 1rem;
+    background-color: rgba(0,0,0,0.1);
+    border: 1px dashed var(--card-border);
+    border-radius: 8px;
+}
+
+body.light-mode .no-items-msg {
+    background-color: rgba(0,0,0,0.03);
 }
