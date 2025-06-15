@@ -1,3 +1,19 @@
+// Bloque de verificación de autenticación
+(function() {
+    const token = localStorage.getItem('contaunoToken');
+    const path = window.location.pathname;
+    
+    // Verifica si la página actual es login.html o signup.html
+    const onAuthPage = path.endsWith('/login.html') || path.endsWith('/signup.html');
+
+    // Si NO hay token y NO estamos en una página de autenticación, redirigir a login
+    if (!token && !onAuthPage) {
+        console.log("Usuario no autenticado. Redirigiendo a /login.html");
+        window.location.href = '/login.html'; // Usamos una ruta absoluta
+    }
+})();
+
+// El resto de tu código de scripts.js continúa aquí abajo...
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- LÓGICA MODO CLARO/OSCURO ---

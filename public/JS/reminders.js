@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(API_URL, { headers: getAuthHeaders() }); 
             if (response.status === 401 || response.status === 403) {
                  showNotification('Sesión inválida. Por favor, inicia sesión de nuevo.', 'error');
-                 // Opcional: Redirigir al login
-                 // window.location.href = '/login.html';
+                 // Redirige al login si la sesión es inválida
+                 window.location.href = '/login.html';
                  return;
             }
             if (!response.ok) throw new Error('No se pudo conectar con el servidor.');
