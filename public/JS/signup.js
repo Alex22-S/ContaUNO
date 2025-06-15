@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Definimos la URL base de nuestra API
-    const API_BASE_URL = 'http://localhost:3000';
+    // URL base del servidor backend. Usar una ruta relativa lo hace funcionar tanto en local como en producción (Render).
+    const API_BASE_URL = '/api';
 
     const signupForm = document.getElementById('signup-form');
 
@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (password !== passwordConfirm) { errorDisplay.textContent = 'Las contraseñas no coinciden.'; return; }
 
             try {
-                // CORRECCIÓN: Usamos la URL completa del servidor
-                const response = await fetch(`${API_BASE_URL}/api/signup`, {
+                // Usamos la ruta relativa para que funcione en cualquier servidor
+                const response = await fetch(`${API_BASE_URL}/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -41,12 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.status === 201) {
-                    // Esta lógica es para mostrar una notificación. Si no tienes 'showNotification' en esta página,
-                    // un simple alert es un buen respaldo.
                     alert("¡Usuario registrado con éxito! Serás redirigido para iniciar sesión.");
                     setTimeout(() => {
                        window.location.href = 'login.html';
-                    }, 1500); // Esperamos un poco para que el usuario lea el mensaje.
+                    }, 1500); 
                 } else {
                     errorDisplay.textContent = data.message;
                 }

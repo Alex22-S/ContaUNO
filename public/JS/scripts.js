@@ -103,6 +103,9 @@ function hideAllViews() {
     
     const cashflowView = document.getElementById('cashflow-view');
     if (cashflowView) cashflowView.style.display = 'none';
+
+    const remindersView = document.getElementById('reminders-view');
+    if (remindersView) remindersView.style.display = 'none';
 }
 
 function showDashboard(level) {
@@ -195,6 +198,19 @@ function showCashflowView() {
             populateMonthSelector('cashflow-month-select', () => currentDate.getMonth());
         }
         updateCashflowView();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showRemindersView() {
+    hideAllViews();
+    const remindersView = document.getElementById('reminders-view');
+    if (remindersView) {
+        remindersView.style.display = 'block';
+    }
+    // Llama a la función de inicialización de los recordatorios si existe
+    if (typeof window.initializeRemindersView === 'function') {
+        window.initializeRemindersView();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }

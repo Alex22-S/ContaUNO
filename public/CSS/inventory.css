@@ -50,8 +50,8 @@
 
 /* === NUEVO: Estilos para el botón de historial === */
 .inventory-actions-footer {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
     border-top: 1px solid var(--card-border);
     text-align: center;
 }

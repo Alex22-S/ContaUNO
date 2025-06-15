@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // URL base del servidor backend
-    const API_BASE_URL = 'http://localhost:3000';
+    // URL base del servidor backend. Usar una ruta relativa lo hace funcionar tanto en local como en producción (Render).
+    const API_BASE_URL = '/api';
 
     // Si el usuario ya tiene una sesión en sessionStorage, lo redirigimos
     if (sessionStorage.getItem('contaunoUser')) {
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorDisplay.textContent = '';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/login`, {
+                const response = await fetch(`${API_BASE_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })

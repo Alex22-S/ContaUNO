@@ -40,6 +40,7 @@
     justify-content: space-between;
     align-items: center;
     padding-bottom: 1.5rem;
+    /* ✅ CORRECCIÓN: Reducido el margen inferior para disminuir el espacio */
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--card-border);
 }
@@ -76,7 +77,9 @@ body.light-mode .back-btn-form:hover {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 20px;
-    padding: 2rem;
+    /* ✅ CORRECCIÓN PRINCIPAL: Se reduce el padding superior de 2rem a 1.5rem */
+    /* El formato es: padding: top right bottom left */
+    padding: 1.5rem 2rem 2rem 2rem;
     backdrop-filter: blur(20px);
     box-shadow: var(--card-hover-shadow);
     flex-grow: 1;
@@ -121,7 +124,15 @@ body.light-mode .back-btn-form:hover {
     font-size: 1rem;
     transition: all 0.3s ease;
     box-sizing: border-box;
+    height: 48px; /* Altura consistente para inputs y selects */
 }
+
+/* Se permite que el textarea crezca */
+.form-group textarea {
+    height: auto;
+    min-height: 48px;
+}
+
 
 .form-group input:focus,
 .form-group select:focus,
@@ -158,9 +169,12 @@ body.light-mode .form-group input[readonly] {
 }
 
 .category-manager button, .template-manager button {
-    padding: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 48px;
     height: 48px;
+    padding: 0;
     border: 1px solid var(--input-border);
     background: var(--input-bg);
     color: var(--text-primary);
@@ -168,6 +182,7 @@ body.light-mode .form-group input[readonly] {
     font-size: 1.2rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .category-manager button:hover, .template-manager button:hover {
@@ -394,11 +409,17 @@ body.light-mode .form-group input[readonly] {
 
 @media (max-width: 768px) {
     .form-page-layout {
+        /* ✅ CORRECCIÓN: Se ajusta el padding superior para que el header no tape el contenido */
         padding: 80px 1rem 1rem;
     }
     .form-grid {
         grid-template-columns: 1fr;
         gap: 0;
+    }
+    .form-header-full {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
     }
     .form-header-full h2 {
         font-size: 1.8rem;
@@ -415,22 +436,12 @@ body.light-mode .form-group input[readonly] {
 /* === CORRECCIÓN PARA VISIBILIDAD EN MODO OSCURO === */
 /* =================================================== */
 
-/*
- * Asegura que los desplegables (select) y sus opciones (option)
- * sean legibles tanto en modo oscuro como en modo claro,
- * solucionando problemas de visibilidad en algunos navegadores.
- */
-
-/* Estilo para las opciones del desplegable en el modo por defecto (oscuro) */
 .form-group select option {
-    /* Usamos un color de fondo sólido del tema oscuro para evitar problemas con transparencias */
     background: #1a1a3e; 
     color: #ffffff;
 }
 
-/* Estilo para las opciones del desplegable en modo claro */
 body.light-mode .form-group select option {
-    /* Usamos un color de fondo sólido y texto oscuro para el modo claro */
     background: #ffffff;
     color: #1e293b;
 }

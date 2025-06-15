@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContaUNO - Contabilidad Inteligente</title>
+    <link rel="icon" type="image/png" href="images/favicon.png"> 
+
+    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="CSS/calendar.css">
+    <link rel="stylesheet" href="CSS/form.css">
+    <link rel="stylesheet" href="CSS/balance.css"> 
+    <link rel="stylesheet" href="CSS/analysis.css">
+    <link rel="stylesheet" href="CSS/invoices.css">
+    <link rel="stylesheet" href="CSS/inventory.css">
+    <link rel="stylesheet" href="CSS/notifications.css">
+    <link rel="stylesheet" href="CSS/savings.css">
+    <link rel="stylesheet" href="CSS/cashflow.css">
+    <link rel="stylesheet" href="CSS/reminders.css"> <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.umd.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        .calendar-view,
+        .balance-view,
+        .invoices-view,
+        .dashboard,
+        .analysis-report-view,
+        .inventory-view,
+        .savings-view,
+        .reminders-view, /* Añadido .reminders-view */
+        .cashflow-view {
+            padding-top: 100px; 
+        }
+
+        /* Estilos para los colores de montos positivos y negativos */
+        .positive-value { color: #28a745; font-weight: 500; }
+        .negative-value { color: #dc3545; font-weight: 500; }
+        
+        /* Estilos globales para modales */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.7); animation: fadeIn 0.3s ease-in-out; align-items: center; justify-content: center; }
+        .modal-content { background-color: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); animation: slideIn 0.4s ease-out; width: 90%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; max-height: 90vh; }
+        .modal-content.large { width: 70vw; max-width: 1200px; }
+        .modal-header { padding: 20px 25px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); }
+        .modal-header-text h2 { margin: 0; font-size: 1.6rem; }
+        .modal-header-text p { margin: 5px 0 0; color: var(--text-secondary); }
+        .modal .close-btn { color: var(--text-secondary); font-size: 32px; font-weight: bold; cursor: pointer; line-height: 1; }
+        .modal .close-btn:hover { color: #ef4444; }
+        .modal-body { flex-grow: 1; padding: 20px 25px 25px; overflow-y: auto; min-height: 0; }
+        
+        /* Estilos para tabla de historial de ahorros */
+        #savings-history-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
+        #savings-history-table th, #savings-history-table td { padding: 12px 8px !important; vertical-align: middle !important; text-align: left !important; border-bottom: 1px solid var(--card-border); }
+        #savings-history-table th { background-color: var(--input-bg); font-weight: 600; position: sticky; top: 0; z-index: 10; }
+        .col-fecha { width: 125px !important; }
+        .col-tipo { width: 110px !important; }
+        .col-categoria { white-space: normal !important; word-wrap: break-word !important; }
+        .col-monto { width: 120px !important; text-align: right !important; white-space: nowrap !important; }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="floating-elements" id="floatingElements"></div>
+    
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">ContaUNO</div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Inicio</a>
+                <a href="#" class="nav-link">Características</a>
+                <a href="#" class="nav-link">Precios</a>
+                <a href="#" class="nav-link">Soporte</a>
+                <div class="theme-switcher">
+                    <input type="checkbox" id="theme-toggle">
+                    <label for="theme-toggle">
+                        <span class="sun">☀️</span>
+                        <span class="moon">🌙</span>
+                    </label>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="hero" id="hero">
+        <h1 class="hero-title">ContaUNO</h1>
+        <p class="hero-subtitle">Selecciona el modo que mejor se adapte a tus necesidades empresariales</p>
+        
+        <div class="level-selector">
+            <div class="level-card basic" onclick="showDashboard('basic')">
+                <div class="level-icon">🌱</div>
+                <h3 class="level-title">Contabilidad Básica</h3>
+                <p class="level-description">Perfecto para emprendedores y pequeños negocios. Funciones simples y guiadas paso a paso.</p>
+            </div>
+            
+            <div class="level-card intermediate" onclick="showDashboard('intermediate')">
+                <div class="level-icon">📊</div>
+                <h3 class="level-title">Contabilidad Media</h3>
+                <p class="level-description">Para empresas en crecimiento. Herramientas intermedias con análisis detallados.</p>
+            </div>
+            
+            <div class="level-card advanced" onclick="showDashboard('advanced')">
+                <div class="level-icon">🚀</div>
+                <h3 class="level-title">Contabilidad Avanzada</h3>
+                <p class="level-description">Para contadores profesionales. Funciones complejas y análisis profundos.</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="dashboard" id="basic-dashboard">
+        <button class="back-btn" onclick="showHero()">← Volver</button>
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">Contabilidad Básica</h2>
+            <p>Herramientas simples para empezar tu negocio</p>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Buscar función..." onkeyup="filterFunctions(this.value, 'basic')">
+        </div>
+        
+        <div class="functions-grid" id="basic-functions">
+            <div class="function-card" onclick="showCalendar()">
+                <h4 class="function-title">Registro de Ingresos y Gastos</h4>
+                <p class="function-description">Registra y controla todas tus entradas y salidas de dinero en un solo lugar.</p>
+            </div>
+            <div class="function-card" onclick="showBalanceView()">
+                <h4 class="function-title">Balance Simple</h4>
+                <p class="function-description">Ve cuánto tienes vs cuánto debes de forma clara.</p>
+            </div>
+            <div class="function-card" onclick="showInvoicesView()">
+                <h4 class="function-title">Facturas Básicas</h4>
+                <p class="function-description">Crea facturas profesionales en minutos.</p>
+            </div>
+            <div class="function-card" onclick="showInventoryView()">
+                <h4 class="function-title">📦 Control de Inventario</h4>
+                <p class="function-description">Gestiona tu stock de productos, costos y precios.</p>
+            </div>
+            <div class="function-card" onclick="showSavingsView()">
+                <h4 class="function-title">💰 Metas de Ahorro</h4>
+                <p class="function-description">Define tus objetivos y sigue tu progreso para alcanzarlos.</p>
+            </div>
+            <div class="function-card" onclick="showCashflowView()">
+                <h4 class="function-title">Flujo de Caja</h4>
+                <p class="function-description">Visualiza el dinero que entra y sale.</p>
+            </div>
+            <div class="function-card" onclick="showRemindersView()"> <h4 class="function-title">Recordatorios</h4>
+                <p class="function-description">No olvides fechas importantes de pagos.</p>
+            </div>
+            <div class="function-card">
+                <h4 class="function-title">Backup Automático</h4>
+                <p class="function-description">Tus datos siempre seguros en la nube.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="reminders-view" id="reminders-view">
+        <button class="back-btn" onclick="showDashboard('basic')">← Volver</button>
+        <div class="reminders-container">
+            <div class="reminders-header">
+                <h2 class="reminders-main-title">Gestor de Recordatorios</h2>
+                <button class="btn-main-action" id="btn-add-reminder">
+                    <span class="icon">➕</span>
+                    Nuevo Recordatorio
+                </button>
+            </div>
+
+            <div class="reminders-controls">
+                <div class="filter-group">
+                    <label for="reminders-filter">Mostrar:</label>
+                    <select id="reminders-filter">
+                        <option value="pending">Pendientes</option>
+                        <option value="past-due">Vencidos</option>
+                        <option value="completed">Completados</option>
+                        <option value="all">Todos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="reminders-grid">
+                </div>
+            <div id="reminders-empty-state">
+                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">🗂️</span>
+                <h3 style="color: var(--text-primary); font-size: 1.5rem;">No hay recordatorios aquí.</h3>
+                <p style="color: var(--text-secondary); max-width: 400px; margin: 0.5rem auto 1.5rem;">Crea tu primer recordatorio para no olvidar nunca una fecha de pago.</p>
+                <button class="btn-main-action" onclick="document.getElementById('btn-add-reminder').click();">
+                    Crear mi primer recordatorio
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="reminder-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="reminder-modal-title" class="form-section-title">Crear Nuevo Recordatorio</h2>
+                <span class="close-btn" id="reminder-modal-close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="reminder-form" novalidate>
+                    <input type="hidden" id="editing-reminder-id">
+                    <div class="form-group">
+                        <label for="reminder-title">Título del recordatorio</label>
+                        <input type="text" id="reminder-title" required placeholder="Ej: Pago de arriendo, Factura #1020...">
+                    </div>
+                    <div class="form-grid-2-col">
+                        <div class="form-group">
+                            <label for="reminder-due-date">Fecha de Vencimiento</label>
+                            <input type="date" id="reminder-due-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reminder-amount">Monto (Opcional)</label>
+                            <input type="number" id="reminder-amount" step="1" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminder-priority">Prioridad</label>
+                        <select id="reminder-priority" required>
+                            <option value="low">Baja</option>
+                            <option value="medium">Media</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-actions-full" style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn-main-action">💾 Guardar</button>
+                        <button type="button" class="btn-secondary" id="cancel-reminder-btn">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="notification-container"></div>
+
+    <script src="JS/scripts.js"></script>
+    <script src="JS/calendar.js"></script>
+    <script src="JS/balance.js"></script>
+    <script src="JS/analysis.js"></script>
+    <script src="JS/invoices.js"></script>
+    <script src="JS/inventory.js"></script>
+    <script src="JS/notifications.js"></script>
+    <script src="JS/savings.js"></script>
+    <script src="JS/cashflow.js"></script>
+    <script src="JS/reminders.js"></script> </body>
+</html>

@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="CSS/notifications.css">
     <link rel="stylesheet" href="CSS/savings.css">
     <link rel="stylesheet" href="CSS/cashflow.css">
+    <link rel="stylesheet" href="CSS/reminders.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.umd.min.js"></script>
@@ -26,14 +27,14 @@
 
     <style>
         .calendar-view,
-        .form-view,
         .balance-view,
         .invoices-view,
         .dashboard,
         .analysis-report-view,
         .inventory-view,
         .savings-view,
-        .cashflow-view { /* Añadido .cashflow-view */
+        .cashflow-view,
+        .reminders-view { 
             padding-top: 100px; 
         }
 
@@ -582,7 +583,7 @@
                 <h4 class="function-title">Flujo de Caja</h4>
                 <p class="function-description">Visualiza el dinero que entra y sale.</p>
             </div>
-            <div class="function-card">
+            <div class="function-card" onclick="showRemindersView()">
                 <h4 class="function-title">Recordatorios</h4>
                 <p class="function-description">No olvides fechas importantes de pagos.</p>
             </div>
@@ -870,6 +871,43 @@
             </div>
         </div>
     </div>
+    
+    <div class="reminders-view" id="reminders-view" style="display: none;">
+        <button class="back-btn" onclick="showDashboard('basic')">← Volver</button>
+        <div class="reminders-container">
+            <div class="reminders-header">
+                <h2 class="reminders-main-title">Gestor de Recordatorios</h2>
+                <button class="btn-main-action" id="btn-add-reminder">
+                    <span class="icon">➕</span>
+                    Nuevo Recordatorio
+                </button>
+            </div>
+
+            <div class="reminders-controls">
+                <div class="filter-group">
+                    <label for="reminders-filter">Mostrar:</label>
+                    <select id="reminders-filter">
+                        <option value="pending">Pendientes</option>
+                        <option value="past-due">Vencidos</option>
+                        <option value="completed">Completados</option>
+                        <option value="all">Todos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="reminders-grid">
+                </div>
+            <div id="reminders-empty-state" style="display: none;">
+                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">🗂️</span>
+                <h3 style="color: var(--text-primary); font-size: 1.5rem;">No hay recordatorios aquí.</h3>
+                <p style="color: var(--text-secondary); max-width: 400px; margin: 0.5rem auto 1.5rem;">Crea tu primer recordatorio para no olvidar nunca una fecha de pago.</p>
+                <button class="btn-main-action" onclick="document.getElementById('btn-add-reminder').click();">
+                    Crear mi primer recordatorio
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div id="savings-goal-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1154,41 +1192,81 @@
         </div>
     </div>
     
-<div id="cashflow-details-modal" class="modal">
-    <div class="modal-content large">
-        <div class="modal-header">
-            <div class="modal-header-text">
-                <h2 id="modal-cashflow-category-title">Detalle de Categoría</h2>
-                <p>Transacciones individuales que componen el total de la categoría.</p>
+    <div id="cashflow-details-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <div class="modal-header-text">
+                    <h2 id="modal-cashflow-category-title">Detalle de Categoría</h2>
+                    <p>Transacciones individuales que componen el total de la categoría.</p>
+                </div>
+                <span class="close-btn" id="modal-cashflow-close-btn">&times;</span>
             </div>
-            <span class="close-btn" id="modal-cashflow-close-btn">&times;</span>
-        </div>
-        <div class="modal-body" style="display: flex; flex-direction: column;">
-            <div class="table-wrapper" style="flex-grow: 1; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 8px;">
-                <table id="modal-cashflow-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 15%;">Fecha</th>
-                            <th style="width: 55%;">Descripción</th>
-                            <th style="width: 15%; text-align: right;">Tipo</th>
-                            <th style="width: 15%; text-align: right;">Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modal-cashflow-table-body">
-                        </tbody>
-                </table>
-            </div>
-            <div class="modal-summary-section" style="flex-shrink: 0; display: flex; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--card-border); margin-top: auto;">
-                 <div class="summary-box" style="background-color: var(--input-bg); padding: 15px; border-radius: 8px; width: 280px;">
-                    <h4 class="summary-box-title" style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">Total de la Categoría</h4>
-                    <div class="summary-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 1.5rem; font-weight: 700;">
-                        <span id="modal-cashflow-final-total">$0</span>
+            <div class="modal-body" style="display: flex; flex-direction: column;">
+                <div class="table-wrapper" style="flex-grow: 1; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 8px;">
+                    <table id="modal-cashflow-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Fecha</th>
+                                <th style="width: 55%;">Descripción</th>
+                                <th style="width: 15%; text-align: right;">Tipo</th>
+                                <th style="width: 15%; text-align: right;">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-cashflow-table-body">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="modal-summary-section" style="flex-shrink: 0; display: flex; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--card-border); margin-top: auto;">
+                     <div class="summary-box" style="background-color: var(--input-bg); padding: 15px; border-radius: 8px; width: 280px;">
+                        <h4 class="summary-box-title" style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">Total de la Categoría</h4>
+                        <div class="summary-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 1.5rem; font-weight: 700;">
+                            <span id="modal-cashflow-final-total">$0</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+    <div id="reminder-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="reminder-modal-title" class="form-section-title">Crear Nuevo Recordatorio</h2>
+                <span class="close-btn" id="reminder-modal-close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="reminder-form" novalidate>
+                    <input type="hidden" id="editing-reminder-id">
+                    <div class="form-group">
+                        <label for="reminder-title">Título del recordatorio</label>
+                        <input type="text" id="reminder-title" required placeholder="Ej: Pago de arriendo, Factura #1020...">
+                    </div>
+                    <div class="form-grid-2-col">
+                        <div class="form-group">
+                            <label for="reminder-due-date">Fecha de Vencimiento</label>
+                            <input type="date" id="reminder-due-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reminder-amount">Monto (Opcional)</label>
+                            <input type="number" id="reminder-amount" step="1" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminder-priority">Prioridad</label>
+                        <select id="reminder-priority" required>
+                            <option value="low">Baja</option>
+                            <option value="medium">Media</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-actions-full" style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn-main-action">💾 Guardar</button>
+                        <button type="button" class="btn-secondary" id="cancel-reminder-btn">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div id="notification-container"></div>
 
@@ -1201,5 +1279,6 @@
     <script src="JS/notifications.js"></script>
     <script src="JS/savings.js"></script>
     <script src="JS/cashflow.js"></script>
+    <script src="JS/reminders.js"></script>
 </body>
 </html>
