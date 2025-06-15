@@ -1,3 +1,69 @@
+/* === NUEVO: Estilos para el layout de la vista de inventario === */
+
+.inventory-view {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.inventory-container {
+    background-color: var(--background-color);
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.inventory-header {
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.inventory-main-title {
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.inventory-header p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.inventory-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.product-form-container, .product-list-container {
+    background-color: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+}
+
+.product-list-container {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* === NUEVO: Estilos para el botón de historial === */
+.inventory-actions-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--card-border);
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .inventory-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+
 /* Estilos para la tabla de inventario */
 #product-table {
     width: 100%;
@@ -37,12 +103,12 @@
 }
 
 #product-table .stock-low {
-    color: #f39c12; /* Naranja para stock bajo */
+    color: #f39c12;
     font-weight: bold;
 }
 
 #product-table .stock-out {
-    color: #e74c3c; /* Rojo para sin stock */
+    color: #e74c3c;
     font-weight: bold;
 }
 
@@ -61,8 +127,7 @@
 }
 
 
-/* === NUEVO: Estilos para la tabla de historial de inventario === */
-
+/* Estilos para la tabla de historial de inventario (dentro del modal) */
 #inventory-history-table {
     width: 100%;
     border-collapse: collapse;
@@ -105,4 +170,10 @@
 .history-type.purchase {
     background-color: rgba(16, 185, 129, 0.1);
     color: #10b981;
+}
+
+/* === NUEVO: Ajuste para el tamaño del modal de historial === */
+.modal-content.large {
+    max-width: 1000px; /* Ancho mayor para la tabla */
+    width: 90%;
 }

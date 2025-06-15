@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Definimos la URL base de nuestra API
+    const API_BASE_URL = 'http://localhost:3000';
+
     const signupForm = document.getElementById('signup-form');
 
     // Lógica del tema claro/oscuro
@@ -29,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (password !== passwordConfirm) { errorDisplay.textContent = 'Las contraseñas no coinciden.'; return; }
 
             try {
-                const response = await fetch('/api/signup', {
+                // CORRECCIÓN: Usamos la URL completa del servidor
+                const response = await fetch(`${API_BASE_URL}/api/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -37,25 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.status === 201) {
-                    // --- CORRECCIÓN AQUÍ ---
-                    // Reemplazamos alert() por showNotification.
-                    // IMPORTANTE: Esto solo funcionará si 'signup.html' carga los archivos
-                    // 'notifications.css' y 'scripts.js' al igual que 'index.html'.
-                    if(typeof showNotification === 'function') {
-                        showNotification("¡Usuario registrado con éxito! Redirigiendo...", 'success');
-                        setTimeout(() => {
-                           window.location.href = 'login.html';
-                        }, 2500);
-                    } else {
-                        // Respaldo por si los scripts no están cargados
-                        alert("¡Usuario registrado con éxito! Serás redirigido para iniciar sesión.");
-                        window.location.href = 'login.html';
-                    }
+                    // Esta lógica es para mostrar una notificación. Si no tienes 'showNotification' en esta página,
+                    // un simple alert es un buen respaldo.
+                    alert("¡Usuario registrado con éxito! Serás redirigido para iniciar sesión.");
+                    setTimeout(() => {
+                       window.location.href = 'login.html';
+                    }, 1500); // Esperamos un poco para que el usuario lea el mensaje.
                 } else {
                     errorDisplay.textContent = data.message;
                 }
             } catch (error) {
-                errorDisplay.textContent = 'No se pudo conectar con el servidor.';
+                errorDisplay.textContent = 'No se pudo conectar con el servidor. ¿Está encendido?';
+                console.error('Error de conexión:', error);
             }
         });
     }

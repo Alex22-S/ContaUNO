@@ -1,184 +1,139 @@
-// --- Importaciones ---
 const express = require('express');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const path = require('path');
-const jwt = require('jsonwebtoken'); // Para la seguridad por tokens
-const { jsPDF } = require('jspdf'); // Para generar PDFs en el servidor
-require('jspdf-autotable'); // Extensión para tablas en PDF
-const { Pool } = require('pg');
+const jwt = require('jsonwebtoken'); // <--- Importamos JWT
+const bcrypt = require('bcryptjs'); // <--- Importamos Bcrypt
 
-// --- Configuración Inicial ---
 const app = express();
-const PORT = process.env.PORT || 3000;
-// IMPORTANTE: Crea una variable de entorno en Render llamada JWT_SECRET con un valor largo y aleatorio.
-const JWT_SECRET = process.env.JWT_SECRET || 'este-es-un-secreto-solo-para-desarrollo-local';
+const PORT = 3000;
+const JWT_SECRET = 'este-es-un-secreto-muy-largo-y-dificil-de-adivinar'; // Cambia esto por tu propia frase secreta
 
-// --- Conexión a PostgreSQL en Render ---
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+app.use(cors()); 
+app.use(express.json()); 
 
-// --- Middlewares ---
-app.use(cors());
-app.use(express.json());
-
-// --- Sirviendo Archivos Estáticos (Frontend) ---
-app.use(express.static(path.join(__dirname, '..', 'public')));
+let users = [];
+let userIdCounter = 1;
+let savingsGoals = []; 
+let goalIdCounter = 1;
 
 // --- Middleware de Autenticación ---
+// Este "guardia" se ejecutará antes de cada ruta que queramos proteger.
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.sendStatus(401);
+    const token = authHeader && authHeader.split(' ')[1]; // Formato: "Bearer TOKEN"
+
+    if (token == null) {
+        return res.sendStatus(401); // No hay token, no autorizado
+    }
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
-        req.user = user;
-        next();
+        if (err) {
+            return res.sendStatus(403); // El token no es válido o ha expirado
+        }
+        req.user = user; // Guardamos la info del usuario del token en la petición
+        next(); // El usuario está verificado, puede continuar
     });
 };
 
-// --- Rutas de Autenticación ---
+
+// --- Rutas de Autenticación (Actualizadas) ---
+
+// Signup: Ahora encriptamos la contraseña
 app.post('/api/signup', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ message: "Usuario y contraseña son requeridos." });
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hashedPassword]);
-        res.status(201).json({ message: 'Usuario creado con éxito' });
+        const { username, password } = req.body;
+        if (!username || !password) return res.status(400).json({ message: 'El usuario y la contraseña son obligatorios.' });
+        if (users.find(u => u.username === username.toLowerCase())) return res.status(409).json({ message: 'El nombre de usuario ya existe.' });
+        
+        const hashedPassword = await bcrypt.hash(password, 10); // Encriptamos la contraseña
+        const newUser = { id: userIdCounter++, username: username.toLowerCase(), password: hashedPassword };
+        users.push(newUser);
+        
+        console.log('Nuevo usuario registrado:', { id: newUser.id, username: newUser.username });
+        res.status(201).json({ message: 'Usuario registrado con éxito.' });
     } catch (error) {
-        if (error.code === '23505') return res.status(409).json({ message: 'El nombre de usuario ya existe.' });
-        res.status(500).json({ message: 'Error interno del servidor.' });
+        res.status(500).json({ message: 'Error en el servidor.' });
     }
 });
 
+// Login: Ahora comparamos la contraseña encriptada y devolvemos un token
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
     try {
-        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        const user = result.rows[0];
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
-        }
-        const accessToken = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '8h' });
-        res.json({ message: 'Login exitoso', token: accessToken });
-    } catch (error) {
-        res.status(500).json({ message: 'Error interno del servidor.' });
-    }
-});
+        const { username, password } = req.body;
+        const user = users.find(u => u.username === username.toLowerCase());
+        if (!user) return res.status(401).json({ message: 'Usuario o contraseña incorrectos.' });
 
-// --- API para Transacciones (Protegida) ---
-app.get('/api/transactions', authenticateToken, async (req, res) => {
-    const { userId } = req.user;
-    try {
-        const result = await pool.query('SELECT *, to_char(date, \'YYYY-MM-DD\') as date FROM transactions WHERE "userId" = $1 ORDER BY date DESC', [userId]);
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al obtener transacciones' });
-    }
-});
-
-app.post('/api/transactions', authenticateToken, async (req, res) => {
-    const { userId } = req.user;
-    const { date, type, amount, description, category, provider, providerId, notes } = req.body;
-    try {
-        const query = `INSERT INTO transactions ("userId", date, type, amount, description, category, provider, "providerId", notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;`;
-        const values = [userId, date, type, amount, description, category, provider, providerId, notes];
-        const result = await pool.query(query, values);
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        res.status(500).json({ message: 'Error al crear la transacción' });
-    }
-});
-
-// --- API para Reportes PDF (Protegida) ---
-app.get('/api/report/monthly', authenticateToken, async (req, res) => {
-    const { userId } = req.user;
-    const { month, year } = req.query;
-    if (!month || !year) return res.status(400).json({ message: 'Mes y año son requeridos.' });
-
-    try {
-        const query = `SELECT *, to_char(date, 'YYYY-MM-DD') as date FROM transactions WHERE "userId" = $1 AND EXTRACT(YEAR FROM date) = $2 AND EXTRACT(MONTH FROM date) = $3 ORDER BY date ASC;`;
-        const result = await pool.query(query, [userId, year, month]);
-        const transactions = result.rows;
-
-        const summary = transactions.reduce((acc, t) => {
-            if (t.type === 'income') acc.income += parseFloat(t.amount);
-            else if (t.type === 'expense') acc.expense += parseFloat(t.amount);
-            acc.balance = acc.income - acc.expense;
-            return acc;
-        }, { income: 0, expense: 0, balance: 0 });
-
-        const { doc, fileName } = generatePdfDocument(summary, transactions, { month, year });
+        const isMatch = await bcrypt.compare(password, user.password); // Comparamos con la contraseña encriptada
+        if (!isMatch) return res.status(401).json({ message: 'Usuario o contraseña incorrectos.' });
         
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        // Creamos el token con el ID del usuario dentro
+        const accessToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
         
-        doc.pipe(res);
-
+        console.log('Usuario ha iniciado sesión:', { id: user.id, username: user.username });
+        res.json({ token: accessToken }); // <-- Enviamos el token al frontend
     } catch (error) {
-        res.status(500).json({ message: 'Error generando el reporte PDF' });
+        res.status(500).json({ message: 'Error en el servidor.' });
     }
 });
 
-// --- Función Auxiliar para crear el PDF ---
-function generatePdfDocument(summary, transactions, period) {
-    const doc = new jsPDF();
-    const formatCurrency = (value) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-    
-    const primaryColor = '#0d47a1', secondaryColor = '#42a5f5', textColor = '#333333';
-    const headerBgColor = '#1e88e5', incomeColor = '#2e7d32', expenseColor = '#c62828';
-    const borderColor = '#e0e0e0';
+// --- Rutas para Metas de Ahorro (Ahora Protegidas) ---
+// Usamos el middleware 'authenticateToken' para proteger todas estas rutas.
 
-    const monthName = new Date(period.year, period.month - 1).toLocaleString('es-CO', { month: 'long' });
-    const fileName = `Reporte_${monthName}_${period.year}.pdf`;
-    
-    // Encabezado del documento
-    doc.setFont('helvetica', 'bold').setFontSize(24).setTextColor(primaryColor).text('ContaUNO', 14, 22);
-    doc.setFont('helvetica', 'normal').setFontSize(14).setTextColor(textColor).text('Reporte Financiero Mensual', 200, 18, { align: 'right' });
-    doc.setFontSize(11).setTextColor(secondaryColor).text(`${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${period.year}`, 200, 25, { align: 'right' });
-    doc.setDrawColor(borderColor).line(14, 32, 200, 32);
+// OBTENER las metas del usuario logueado
+app.get('/api/savings', authenticateToken, (req, res) => {
+    // Filtramos las metas para devolver solo las del usuario que hace la petición
+    const userGoals = savingsGoals.filter(goal => goal.userId === req.user.id);
+    res.json(userGoals);
+});
 
-    // Tarjetas de Resumen
-    const drawSummaryCard = (x, y, title, value, color) => {
-        doc.setFillColor(255, 255, 255).setDrawColor(borderColor).roundedRect(x, y, 62, 25, 3, 3, 'FD');
-        doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(secondaryColor).text(title, x + 31, y + 8, { align: 'center' });
-        doc.setFontSize(14).setTextColor(color).text(formatCurrency(value), x + 31, y + 18, { align: 'center' });
+// CREAR una nueva meta para el usuario logueado
+app.post('/api/savings', authenticateToken, (req, res) => {
+    const { name, target, saved } = req.body;
+    const newGoal = {
+        _id: `goal_${goalIdCounter++}`,
+        userId: req.user.id, // <-- Asociamos la meta al usuario
+        name,
+        target: parseFloat(target),
+        saved: parseFloat(saved) || 0,
     };
+    savingsGoals.push(newGoal);
+    res.status(201).json(newGoal);
+});
 
-    drawSummaryCard(14, 40, 'INGRESOS TOTALES', summary.income, incomeColor);
-    drawSummaryCard(80, 40, 'GASTOS TOTALES', summary.expense, expenseColor);
-    drawSummaryCard(146, 40, 'BALANCE NETO', summary.balance, summary.balance >= 0 ? primaryColor : expenseColor);
+// ELIMINAR una meta (verificando que le pertenece al usuario)
+app.delete('/api/savings/:id', authenticateToken, (req, res) => {
+    const goalIndex = savingsGoals.findIndex(g => g._id === req.params.id && g.userId === req.user.id);
+    if (goalIndex === -1) return res.status(404).json({ message: 'Meta no encontrada o no tienes permiso para eliminarla.' });
+    savingsGoals.splice(goalIndex, 1);
+    res.status(200).json({ message: 'Meta eliminada.' });
+});
 
-    // Tabla de transacciones
-    const head = [['Fecha', 'Descripción', 'Categoría', 'Ingreso', 'Gasto']];
-    const body = transactions.map(t => [
-        t.date,
-        t.description,
-        t.category || 'N/A',
-        t.type === 'income' ? formatCurrency(t.amount) : '',
-        t.type === 'expense' ? formatCurrency(t.amount) : ''
-    ]);
-    const totalRow = [
-        { content: 'TOTALES', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold', fillColor: '#f5f5f5'} },
-        { content: formatCurrency(summary.income), styles: { halign: 'right', fontStyle: 'bold', textColor: incomeColor, fillColor: '#f5f5f5' } },
-        { content: formatCurrency(summary.expense), styles: { halign: 'right', fontStyle: 'bold', textColor: expenseColor, fillColor: '#f5f5f5' } }
-    ];
-    body.push(totalRow);
+// ✅ --- RUTA PARA AÑADIR ABONOS (LA QUE FALTABA) ---
+app.post('/api/savings/:id/contributions', authenticateToken, (req, res) => {
+    const goalId = req.params.id;
+    const { amount } = req.body;
+    const parsedAmount = parseFloat(amount);
 
-    doc.autoTable({ startY: 85, head, body, theme: 'grid', /* ...estilos... */ });
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ message: 'El monto del abono debe ser un número positivo.' });
+    }
 
-    return { doc, fileName };
-}
+    const goal = savingsGoals.find(g => g._id === goalId);
+
+    if (!goal) {
+        return res.status(404).json({ message: 'Meta no encontrada.' });
+    }
+    if (goal.userId !== req.user.id) {
+        return res.status(403).json({ message: 'No tienes permiso para modificar esta meta.' });
+    }
+
+    goal.saved += parsedAmount;
+
+    console.log(`Abono añadido a la meta '${goal.name}':`, { amount: parsedAmount, newTotal: goal.saved });
+
+    res.status(200).json(goal);
+});
 
 
-// --- Iniciar el servidor ---
-app.listen(PORT, () => console.log(`🚀 Servidor ContaUNO corriendo en el puerto ${PORT}`));
-
-// No olvides la función para crear tablas si no existen
-const createTables = async () => { /* ... tu función createTables sin cambios ... */ };
-createTables();
+app.listen(PORT, () => {
+    console.log(`Servidor ContaUNO corriendo en http://localhost:${PORT}`);
+});

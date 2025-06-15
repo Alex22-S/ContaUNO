@@ -1,28 +1,23 @@
 // === SISTEMA DE INVENTARIO PARA CONTAUNO ===
 
 document.addEventListener('DOMContentLoaded', () => {
-    // La inicialización se llama desde la función showInventoryView()
+    // La inicialización ahora se llama desde showInventoryView() para asegurar que los elementos existan.
 });
 
 let products = [];
 const INVENTORY_KEY = 'contauno_products';
-
-function showInventoryView() {
-    hideAllViews();
-    document.getElementById('inventory-view').style.display = 'block';
-    initializeInventory();
-}
 
 function initializeInventory() {
     loadProducts();
     setupInventoryEventListeners();
     renderProductTable();
     renderProductCategories();
-    renderInventoryHistory();
+    // Ya no renderizamos el historial aquí, se hará al abrir el modal.
     resetInventoryForm();
 }
 
 function setupInventoryEventListeners() {
+    // Formularios y botones principales
     const form = document.getElementById('inventory-form');
     form.removeEventListener('submit', handleInventoryFormSubmit);
     form.addEventListener('submit', handleInventoryFormSubmit);
@@ -34,6 +29,21 @@ function setupInventoryEventListeners() {
     const cancelBtn = document.getElementById('cancel-edit-btn');
     cancelBtn.removeEventListener('click', resetInventoryForm);
     cancelBtn.addEventListener('click', resetInventoryForm);
+
+    // --- NUEVO: Listeners para el modal de historial ---
+    const showHistoryBtn = document.getElementById('btn-show-history');
+    showHistoryBtn.addEventListener('click', showInventoryHistoryModal);
+
+    const closeHistoryBtn = document.getElementById('inventory-history-modal-close-btn'); // <-- CORRECCIÓN AQUÍ
+    closeHistoryBtn.addEventListener('click', hideInventoryHistoryModal);
+    
+    const historyModal = document.getElementById('inventory-history-modal');
+    historyModal.addEventListener('click', (e) => {
+        // Cierra el modal si se hace clic en el fondo oscuro
+        if (e.target === historyModal) {
+            hideInventoryHistoryModal();
+        }
+    });
 }
 
 function loadProducts() {
@@ -58,12 +68,15 @@ function renderProductTable() {
     );
 
     tableBody.innerHTML = '';
+    const productTableContainer = document.querySelector('#product-table').parentElement.parentElement;
+
     if (filteredProducts.length === 0) {
-        emptyMessage.style.display = 'block';
-        tableBody.parentElement.parentElement.style.display = 'none';
+        if (emptyMessage) emptyMessage.style.display = 'block';
+        if (productTableContainer) productTableContainer.style.display = 'none';
     } else {
-        emptyMessage.style.display = 'none';
-        tableBody.parentElement.parentElement.style.display = 'block';
+        if (emptyMessage) emptyMessage.style.display = 'none';
+        if (productTableContainer) productTableContainer.style.display = 'block';
+
         filteredProducts.forEach(product => {
             const stockClass = product.stock <= 0 ? 'stock-out' : (product.stock <= 10 ? 'stock-low' : '');
             const row = `
@@ -110,7 +123,6 @@ function handleInventoryFormSubmit(e) {
             products[productIndex].description = document.getElementById('product-description').value.trim();
             products[productIndex].category = document.getElementById('product-category').value.trim();
             products[productIndex].price = parseFloat(document.getElementById('product-price').value);
-            // No se actualiza el costo ni el stock inicial desde aquí al editar
         }
     } else {
         const cost = parseFloat(document.getElementById('product-cost').value);
@@ -123,7 +135,7 @@ function handleInventoryFormSubmit(e) {
             category: document.getElementById('product-category').value.trim(),
             price: parseFloat(document.getElementById('product-price').value),
             stock: stock,
-            weightedAverageCost: cost // El costo inicial es el primer costo ponderado
+            weightedAverageCost: cost
         };
         products.push(newProduct);
     }
@@ -146,11 +158,9 @@ function editProduct(id) {
     document.getElementById('product-category').value = product.category;
     document.getElementById('product-price').value = product.price;
     
-    // Estos campos no se editan directamente, reflejan el estado actual
     document.getElementById('product-cost').value = product.weightedAverageCost;
     document.getElementById('initial-stock').value = product.stock;
 
-    // Deshabilitar campos que no se deben cambiar al editar
     document.getElementById('initial-stock').disabled = true;
     document.getElementById('product-cost').disabled = true;
 
@@ -158,7 +168,7 @@ function editProduct(id) {
     document.getElementById('save-product-btn').textContent = '💾 Actualizar Producto';
     document.getElementById('cancel-edit-btn').style.display = 'inline-block';
     
-    document.querySelector('.invoice-form-container').scrollIntoView({ behavior: 'smooth' });
+    document.querySelector('.product-form-container').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function deleteProduct(id) {
@@ -175,6 +185,7 @@ async function deleteProduct(id) {
         products = products.filter(p => p.id !== id);
         saveProducts();
         renderProductTable();
+        renderInventoryHistory(); // Actualiza el historial si se elimina un producto
         showNotification('Producto eliminado.', 'success');
     }
 }
@@ -191,10 +202,6 @@ function resetInventoryForm() {
     document.getElementById('cancel-edit-btn').style.display = 'none';
 }
 
-/**
- * [FUNCIÓN CORREGIDA]
- * Actualiza el stock y el costo ponderado de un producto.
- */
 function updateProductStock(productId, quantityChange, purchaseCost = null) {
     loadProducts();
     const productIndex = products.findIndex(p => p.id === productId);
@@ -205,13 +212,11 @@ function updateProductStock(productId, quantityChange, purchaseCost = null) {
 
     const product = products[productIndex];
 
-    // Verifica si hay stock suficiente para una venta (quantityChange es negativo)
     if (quantityChange < 0 && product.stock < Math.abs(quantityChange)) {
         showNotification(`Stock insuficiente para "${product.name}". Solo hay ${product.stock} disponibles.`, 'error');
-        return false; // Indica que la operación falló
+        return false; 
     }
 
-    // Si es una compra (quantityChange > 0) y se provee un costo, recalcula el costo ponderado.
     if (quantityChange > 0 && purchaseCost !== null) {
         const oldStock = product.stock;
         const oldWAC = product.weightedAverageCost;
@@ -226,7 +231,7 @@ function updateProductStock(productId, quantityChange, purchaseCost = null) {
     
     product.stock += quantityChange;
     saveProducts();
-    return true; // Indica que la operación fue exitosa
+    return true;
 }
 
 function renderInventoryHistory() {
@@ -253,12 +258,15 @@ function renderInventoryHistory() {
     historyMovements.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     historyBody.innerHTML = '';
+    const historyTableContainer = document.querySelector('#inventory-history-table').parentElement.parentElement;
+
     if (historyMovements.length === 0) {
         emptyMessage.style.display = 'block';
-        historyBody.parentElement.parentElement.style.display = 'none';
+        historyTableContainer.style.display = 'none';
+
     } else {
         emptyMessage.style.display = 'none';
-        historyBody.parentElement.parentElement.style.display = 'block';
+        historyTableContainer.style.display = 'block';
         historyMovements.forEach(move => {
             const isSale = move.type === 'income';
             const row = `
@@ -277,4 +285,16 @@ function renderInventoryHistory() {
             historyBody.innerHTML += row;
         });
     }
+}
+
+
+// --- NUEVO: Funciones para controlar el Modal de Historial ---
+
+function showInventoryHistoryModal() {
+    renderInventoryHistory(); // Asegurarse de que los datos están actualizados al abrir
+    document.getElementById('inventory-history-modal').style.display = 'block';
+}
+
+function hideInventoryHistoryModal() {
+    document.getElementById('inventory-history-modal').style.display = 'none';
 }

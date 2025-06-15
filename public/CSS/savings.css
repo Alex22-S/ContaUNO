@@ -1,0 +1,293 @@
+/* ================================== */
+/* ESTILOS METAS DE AHORRO (MEJORADOS) */
+/* ================================== */
+
+.savings-view {
+    display: none;
+    padding: 100px 2rem 2rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.savings-container {
+    max-width: 1400px; /* Más ancho para tarjetas más grandes */
+    margin: 0 auto;
+}
+
+.savings-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.savings-main-title {
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.savings-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 1.5rem;
+}
+
+.savings-goals-grid {
+    display: grid;
+    /* ✅ CORRECCIÓN: Hacemos las tarjetas (y por ende el botón) más anchas */
+    grid-template-columns: repeat(auto-fill, minmax(510px, 1fr));
+    gap: 2rem; /* Más espacio entre tarjetas */
+}
+
+.savings-goal-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px; /* Bordes más redondeados */
+    padding: 1.5rem 2rem; /* Más padding */
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--card-shadow);
+}
+
+.savings-goal-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.goal-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem; /* Más espacio */
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 1rem;
+}
+
+.goal-card-title {
+    font-size: 1.5rem; /* Título más grande */
+    color: var(--text-primary);
+    margin: 0;
+    font-weight: 700;
+}
+
+.goal-card-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.goal-action-btn {
+    background: var(--hover-bg);
+    border: 1px solid var(--card-border);
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.goal-action-btn:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.goal-card-body {
+    flex-grow: 1;
+}
+
+.goal-card-progress {
+    margin-bottom: 1.5rem;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+.progress-info span:first-child {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 14px;
+    background-color: var(--border-color);
+    border-radius: 7px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #36D1DC, #5B86E5);
+    border-radius: 7px;
+    transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.progress-percentage {
+    text-align: right;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.goal-card-details {
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--card-border);
+}
+.goal-card-details span:first-child { color: var(--text-secondary); }
+.goal-card-details span.date { font-weight: 600; color: var(--text-primary); }
+
+.goal-card-footer {
+    margin-top: 1.5rem;
+}
+
+.btn-add-contribution {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.3s, background 0.3s;
+}
+
+.btn-add-contribution:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 134, 229, 0.4);
+}
+
+.savings-goal-card.completed {
+    border-color: #3ddc44;
+    background-color: rgba(61, 220, 68, 0.08);
+}
+.savings-goal-card.completed .progress-bar {
+    background: linear-gradient(90deg, #3ddc44, #27ae60);
+}
+
+.completed-badge {
+    text-align: center;
+    padding: 0.85rem;
+    border-radius: 10px;
+    background: rgba(61, 220, 68, 0.15);
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 1.1rem;
+}
+
+/* --- ESTILOS PARA NUEVOS ELEMENTOS (MODALES) --- */
+
+/* Segmented Control para Abono/Retiro */
+.segmented-control {
+    display: flex;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.segmented-control input[type="radio"] {
+    display: none;
+}
+.segmented-control label {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem;
+    cursor: pointer;
+    background-color: var(--input-bg);
+    color: var(--text-secondary);
+    transition: background-color 0.3s, color 0.3s;
+    font-weight: 500;
+}
+.segmented-control input[type="radio"]:checked + label {
+    background-color: var(--primary);
+    color: white;
+    font-weight: 700;
+}
+
+/* Estilos para el historial de ahorros */
+#savings-history-table .movement-add .amount {
+    color: var(--income-color);
+    font-weight: 600;
+}
+#savings-history-table .movement-add .amount::before {
+    content: "+ ";
+}
+#savings-history-table .movement-withdraw .amount {
+    color: var(--expense-color);
+    font-weight: 600;
+}
+#savings-history-table .movement-withdraw .amount::before {
+    content: "- ";
+}
+
+
+/* ========================================================= */
+/* === CORRECCIÓN PARA VISIBILIDAD DE BOTONES EN MODALES === */
+/* ========================================================= */
+
+/* Se aplica a los modales de creación de metas y de añadir/retirar fondos */
+#savings-goal-modal .modal-content,
+#add-contribution-modal .modal-content {
+    /* Permite que el contenido interno se desplace si es muy alto */
+    overflow-y: auto;
+    /* Evita que el modal sea más alto que la ventana */
+    max-height: 90vh; 
+}
+
+/* Asegura que el formulario dentro del modal use todo el alto disponible */
+#savings-goal-modal .modal-content form,
+#add-contribution-modal .modal-content form {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%; /* Ocupa al menos el alto del contenedor */
+}
+
+/* Estilos para la sección de acciones/botones del formulario */
+.modal-content .form-actions-full {
+    display: flex;
+    gap: 1rem;
+    margin-top: auto; /* Empuja los botones hacia el final del contenedor flex (el formulario) */
+    padding-top: 1.5rem; /* Espacio separador superior */
+    border-top: 1px solid var(--card-border); /* Línea separadora */
+}
+
+/* El botón principal (Guardar) ocupa más espacio */
+.modal-content .form-actions-full .btn-main-action {
+    flex-grow: 2;
+}
+
+/* Botón secundario (Cancelar) */
+.modal-content .form-actions-full .btn-secondary {
+    flex-grow: 1;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+}
+
+.modal-content .form-actions-full .btn-secondary:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+/* ========================================================= */
+/* ===  ✅ CORRECCIÓN PARA BOTÓN EN MODO BLANCO/CLARO   ==== */
+/* ========================================================= */
+body.light-mode .btn-add-contribution {
+    /* Usamos un color sólido de fondo para asegurar el contraste */
+    background: var(--primary); 
+    /* Forzamos el color del texto a blanco para que sea legible */
+    color: #FFFFFF;
+}

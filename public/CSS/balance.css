@@ -338,7 +338,7 @@ body.light-mode .chart-container {
 }
 
 /* =================================================================== */
-/* NUEVO: ESTILOS PARA EL BOTÓN DE GENERAR REPORTE COMPLETO */
+/* ESTILOS PARA EL BOTÓN DE GENERAR REPORTE COMPLETO */
 /* =================================================================== */
 .full-report-section {
     margin-top: 3rem;
@@ -379,8 +379,6 @@ body.light-mode .chart-container {
 .btn-main-action .icon {
     font-size: 1.4rem;
 }
-/* =================================================================== */
-
 
 @media (max-width: 480px) {
     .charts-section {
@@ -395,9 +393,6 @@ body.light-mode .chart-container {
 }
 
 .week-card-header, .month-card-header, .year-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     gap: 10px;
 }
 
@@ -423,11 +418,12 @@ body.light-mode .chart-container {
     font-size: 0.9em;
 }
 
-/* ============================================================== */
-/* === CÓDIGO MODIFICADO Y AÑADIDO: ESTILOS PARA MODAL === */
-/* ============================================================== */
+/* ======================================================================= */
+/* === ✅ CÓDIGO CORREGIDO: ESTILOS ESPECÍFICOS PARA EL MODAL DE BALANCE === */
+/* ======================================================================= */
 
-.view-details-btn {
+/* Botón "Ver Detalles" dentro de las tarjetas de la vista de balance */
+.balance-view .view-details-btn {
     background-color: var(--primary);
     color: white;
     border: none;
@@ -441,172 +437,86 @@ body.light-mode .chart-container {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.view-details-btn:hover {
+.balance-view .view-details-btn:hover {
     background-color: var(--primary-light);
     transform: scale(1.05);
 }
 
-.view-details-btn:disabled {
+.balance-view .view-details-btn:disabled {
     background-color: var(--text-secondary);
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
 
-.modal {
-    display: none; 
-    position: fixed; 
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.7);
-    animation: fadeIn 0.3s ease-in-out;
-    display: flex; /* Centra el contenido del modal */
-    align-items: center;
-    justify-content: center;
+/* El modal de balance es más grande que los modales por defecto */
+#weekly-details-modal .modal-content {
+    width: 70vw;
+    height: 75vh;
+    max-width: 1600px;
+    max-height: 1000px;
 }
 
-.modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-primary);
-    padding: 0; /* Eliminamos el padding para controlar el layout con flexbox */
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    animation: slideIn 0.4s ease-out;
-
-    /* --- CORRECCIÓN: Tamaño grande y proporcional --- */
-    width: 70vw;           /* 85% del ancho de la pantalla */
-    height: 75vh;          /* 90% del alto de la pantalla */
-    max-width: 1600px;     /* Límite para pantallas muy grandes */
-    max-height: 1000px;    /* Límite de altura */
-
-    /* --- CORRECCIÓN: Layout con Flexbox para organizar el contenido --- */
+/* La estructura interna del cuerpo de este modal es más compleja */
+#weekly-details-modal .modal-body {
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Muy importante para que el scroll interno funcione */
 }
 
-.modal-header {
-    padding: 20px 25px;
-    flex-shrink: 0; /* El header no se encoge */
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 1px solid var(--card-border);
-}
-
-.modal-header-text h2 {
-    margin: 0;
-    color: var(--primary);
-    font-size: 1.6rem;
-}
-
-.modal-header-text p {
-    margin: 5px 0 0;
-    color: var(--text-secondary);
-    font-style: italic;
-}
-
-.close-btn {
-    color: var(--text-secondary);
-    font-size: 32px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.close-btn:hover,
-.close-btn:focus {
-    color: #ef4444;
-    text-decoration: none;
-}
-
-.modal-body {
-    flex-grow: 1; /* El cuerpo del modal ocupa todo el espacio sobrante */
-    padding: 20px 25px 25px;
-    display: flex;
-    flex-direction: column;
-    min-height: 0; /* Soluciona un bug de flexbox con contenido que se desborda */
-}
-
-
-.table-wrapper-modal {
-    flex-grow: 1; /* El contenedor de la tabla crece para llenar el body */
-    overflow-y: auto; /* SOLO este elemento tendrá scroll vertical */
+/* Contenedor específico de la tabla para darle un borde y scroll */
+#weekly-details-modal .table-wrapper-modal {
+    flex-grow: 1; /* Hace que la tabla ocupe el espacio disponible */
+    overflow-y: auto;
     border: 1px solid var(--card-border);
     border-radius: 8px;
-    min-height: 0; /* Soluciona bug de flexbox */
+    min-height: 0;
 }
 
-.modal table {
+#weekly-details-modal table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Clave para anchos de columna definidos */
+    table-layout: fixed; /* Clave para anchos de columna */
 }
 
-.modal th, .modal td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--card-border);
-    word-wrap: break-word;
-}
-
-/* Anchos de columna optimizados */
-.modal th:nth-child(1), .modal td:nth-child(1) { width: 12%; } /* Fecha */
-.modal th:nth-child(2), .modal td:nth-child(2) { width: 40%; } /* Descripción */
-.modal th:nth-child(3), .modal td:nth-child(3) { width: 20%; } /* Categoría */
-.modal th:nth-child(4), .modal td:nth-child(4) { width: 13%; } /* Tipo */
-.modal th:nth-child(5), .modal td:nth-child(5) { width: 15%; text-align: right; } /* Valor */
-
-
-.modal tbody tr:last-child td {
-    border-bottom: none;
-}
-
-
-.modal th {
+#weekly-details-modal th {
     background-color: var(--input-bg);
-    font-weight: 600;
-    position: sticky;
+    position: sticky; /* Encabezados fijos al hacer scroll */
     top: 0;
     z-index: 10;
 }
 
-.modal tbody tr:hover {
-    background-color: var(--input-bg);
+#weekly-details-modal th, 
+#weekly-details-modal td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--card-border);
 }
 
-.modal td.positive-value, .modal td.negative-value {
-    font-weight: 600;
-    white-space: nowrap;
-}
+/* Anchos de columna específicos para la tabla de detalle de transacciones */
+#weekly-details-modal th:nth-child(1), #weekly-details-modal td:nth-child(1) { width: 12%; } /* Fecha */
+#weekly-details-modal th:nth-child(2), #weekly-details-modal td:nth-child(2) { width: 40%; } /* Descripción */
+#weekly-details-modal th:nth-child(3), #weekly-details-modal td:nth-child(3) { width: 20%; } /* Categoría */
+#weekly-details-modal th:nth-child(4), #weekly-details-modal td:nth-child(4) { width: 13%; } /* Tipo */
+#weekly-details-modal th:nth-child(5), #weekly-details-modal td:nth-child(5) { width: 15%; text-align: right; } /* Valor */
 
-.modal .positive-value { color: #10b981; }
-.modal .negative-value { color: #ef4444; }
-
-.modal-summary-section {
-    flex-shrink: 0; /* El resumen no se encoge */
+/* Sección de resumen al final de la modal */
+#weekly-details-modal .modal-summary-section {
+    flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
     gap: 20px;
     padding-top: 20px;
     border-top: 1px solid var(--card-border);
-    flex-wrap: wrap;
-    margin-top: auto; /* Empuja el resumen hacia abajo */
+    margin-top: auto;
 }
 
-.summary-box {
+#weekly-details-modal .summary-box {
     background-color: var(--input-bg);
     padding: 15px;
     border-radius: 8px;
     width: 280px;
 }
 
-.summary-box-title {
+#weekly-details-modal .summary-box-title {
     margin: 0 0 12px 0;
     font-size: 1rem;
     font-weight: 600;
@@ -615,7 +525,7 @@ body.light-mode .chart-container {
     padding-bottom: 10px;
 }
 
-.summary-line {
+#weekly-details-modal .summary-line {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -623,52 +533,29 @@ body.light-mode .chart-container {
     font-size: 1.1rem;
 }
 
-.summary-line:last-child {
+#weekly-details-modal .summary-line:last-child {
     margin-bottom: 0;
 }
 
-.summary-line span:first-child {
+#weekly-details-modal .summary-line span:first-child {
     font-weight: 500;
     color: var(--text-secondary);
 }
-.summary-line span:last-child {
+#weekly-details-modal .summary-line span:last-child {
     font-weight: 700;
 }
 
-.total-box {
+#weekly-details-modal .total-box {
     background-color: transparent;
     border: 2px solid var(--primary);
 }
-.total-box .summary-box-title {
+#weekly-details-modal .total-box .summary-box-title {
     color: var(--primary);
     border-bottom-color: var(--primary-light);
 }
-.total-box .summary-line span {
+#weekly-details-modal .total-box .summary-line span {
     font-size: 1.5rem;
     font-weight: 700;
     width: 100%;
     text-align: right;
-}
-
-
-@media (max-width: 1200px) {
-    .modal-content {
-        width: 95vw;
-        height: 95vh;
-    }
-}
-
-
-@media (max-width: 768px) {
-    .modal th, .modal td {
-        padding: 8px;
-    }
-    .modal-summary-section {
-        justify-content: center;
-    }
-    .summary-box {
-        width: 100%;
-    }
-    .modal th:nth-child(2), .modal td:nth-child(2) { width: 30%; } 
-    .modal th:nth-child(3), .modal td:nth-child(3) { width: 25%; } 
 }

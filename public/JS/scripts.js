@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
                      setTimeout(() => document.getElementById('btn-generate-full-report').click(), 100);
                  }
             }
+            if (document.getElementById('cashflow-view')?.style.display !== 'none') {
+                if(typeof updateCashflowView === 'function') updateCashflowView();
+            }
         });
     }
 
@@ -91,12 +94,24 @@ function hideAllViews() {
 
     const invoicesView = document.getElementById('invoices-view');
     if (invoicesView) invoicesView.classList.remove('active');
+    
+    const inventoryView = document.getElementById('inventory-view');
+    if (inventoryView) inventoryView.style.display = 'none';
+
+    const savingsView = document.getElementById('savings-view');
+    if (savingsView) savingsView.style.display = 'none';
+    
+    const cashflowView = document.getElementById('cashflow-view');
+    if (cashflowView) cashflowView.style.display = 'none';
 }
 
 function showDashboard(level) {
     hideAllViews();
     const dashboard = document.getElementById(level + '-dashboard');
-    if (dashboard) dashboard.classList.add('active');
+    if (dashboard) {
+        dashboard.style.display = ''; 
+        dashboard.classList.add('active');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -145,12 +160,45 @@ function showInvoicesView() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function showInventoryView() {
+    hideAllViews();
+    const inventoryView = document.getElementById('inventory-view');
+    if (inventoryView) {
+        inventoryView.style.display = 'block';
+    }
+    if (typeof initializeInventory === 'function') {
+        initializeInventory();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function showFullAnalysisReportView() {
     hideAllViews();
     const reportView = document.getElementById('full-analysis-view');
     if (reportView) reportView.style.display = 'block'; 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+function showCashflowView() {
+    hideAllViews();
+    const cashflowView = document.getElementById('cashflow-view');
+    if (cashflowView) {
+        cashflowView.style.display = 'block';
+    }
+    if (typeof updateCashflowView === 'function') {
+        const yearSelect = document.getElementById('cashflow-year-select');
+        const monthSelect = document.getElementById('cashflow-month-select');
+        // Solo establecer la fecha actual la primera vez que se carga
+        if (yearSelect.options.length === 0) {
+            const currentDate = new Date();
+            populateYearSelector('cashflow-year-select', () => currentDate.getFullYear());
+            populateMonthSelector('cashflow-month-select', () => currentDate.getMonth());
+        }
+        updateCashflowView();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 
 function filterFunctions(query, level) {
     const functions = document.querySelectorAll(`#${level}-functions .function-card`);
@@ -172,12 +220,6 @@ function filterFunctions(query, level) {
 // SISTEMA DE NOTIFICACIONES Y DIÁLOGOS
 // =================================================================
 
-/**
- * Muestra una notificación personalizada en la pantalla.
- * @param {string} message - El mensaje que se mostrará.
- * @param {string} type - El tipo de notificación ('success', 'error', 'info', 'warning').
- * @param {number} duration - La duración en milisegundos antes de que desaparezca.
- */
 function showNotification(message, type = 'info', duration = 5000) {
     const container = document.getElementById('notification-container');
     if (!container) return;
@@ -198,22 +240,10 @@ function showNotification(message, type = 'info', duration = 5000) {
 }
 
 
-/**
- * Muestra un diálogo de confirmación modal.
- * @param {object} options - Opciones para el diálogo.
- * @param {string} options.title - El título del diálogo.
- * @param {string} options.message - El mensaje principal del diálogo.
- * @param {string} [options.confirmText='Aceptar'] - Texto del botón de confirmación.
- * @param {string} [options.cancelText='Cancelar'] - Texto del botón de cancelación.
- * @param {function} options.onConfirm - Callback que se ejecuta al confirmar.
- * @param {function} [options.onCancel] - Callback que se ejecuta al cancelar.
- */
 function showConfirmationDialog({ title, message, confirmText = 'Aceptar', cancelText = 'Cancelar', onConfirm, onCancel }) {
-    // Eliminar cualquier diálogo existente para evitar duplicados
     const existingDialog = document.getElementById('confirmation-dialog');
     if (existingDialog) existingDialog.remove();
 
-    // Crear la estructura del diálogo
     const dialog = document.createElement('div');
     dialog.className = 'confirmation-overlay';
     dialog.id = 'confirmation-dialog';
@@ -236,7 +266,7 @@ function showConfirmationDialog({ title, message, confirmText = 'Aceptar', cance
 
     const closeDialog = () => {
         dialog.classList.add('closing');
-        setTimeout(() => dialog.remove(), 300); // Coincide con la animación CSS
+        setTimeout(() => dialog.remove(), 300);
     };
 
     confirmBtn.addEventListener('click', () => {
@@ -256,6 +286,10 @@ function showConfirmationDialog({ title, message, confirmText = 'Aceptar', cance
         }
     });
 
-    // Forzar reflow y añadir clase para animar la entrada
     setTimeout(() => dialog.classList.add('visible'), 10);
+}
+
+// Funciones de utilidad globales que pueden ser usadas por otros scripts
+function formatCurrency(value) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
 }

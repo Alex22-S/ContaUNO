@@ -1,0 +1,225 @@
+/* ============================================= */
+/* ========= ESTILOS VISTA FLUJO DE CAJA ========= */
+/* ============================================= */
+.cashflow-view {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--text-primary);
+    animation: fadeIn 0.5s ease-in-out;
+    display: block; /* Asegura que sea visible cuando se active */
+}
+
+.cashflow-container {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 25px 30px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cashflow-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.cashflow-main-title {
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.cashflow-controls select {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-left: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.cashflow-controls select:hover {
+    border-color: var(--primary-color);
+}
+
+
+/* KPIs o Indicadores Clave */
+.kpi-grid-cashflow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.kpi-card-cf {
+    background-color: var(--body-bg);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    text-align: left;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card-cf:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.kpi-card-cf h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.kpi-card-cf p {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.kpi-card-cf.income p { color: #28a745; }
+.kpi-card-cf.expense p { color: #dc3545; }
+.kpi-card-cf.balance p { color: #0d6efd; }
+#cf-net-flow.positive-value { color: #28a745; }
+#cf-net-flow.negative-value { color: #dc3545; }
+
+
+/* Estructura del Estado de Flujo de Efectivo */
+.cashflow-statement {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.statement-section {
+    background-color: var(--body-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: var(--table-header-bg);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.section-total {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.section-content {
+    padding: 10px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 350px; 
+    overflow-y: auto;  
+    padding-right: 15px; 
+}
+
+.activity-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px dashed var(--card-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.activity-row:hover {
+    background-color: var(--input-bg);
+    transform: scale(1.01);
+}
+
+
+.activity-row:last-child {
+    border-bottom: none;
+}
+
+.activity-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    word-break: break-word;
+    padding-right: 1rem;
+}
+
+.activity-value {
+    font-weight: 500;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: nowrap;
+}
+
+.no-activity {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 20px 0;
+    text-align: center;
+}
+
+/* Gráfico */
+.cashflow-chart-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
+}
+.cashflow-chart-container .chart-title {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.canvas-wrapper {
+    position: relative;
+    height: 350px;
+}
+
+/* Estilos para la tabla dentro del modal de detalles */
+#modal-cashflow-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#modal-cashflow-table th, 
+#modal-cashflow-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--card-border);
+}
+
+#modal-cashflow-table th {
+    background-color: var(--input-bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#modal-cashflow-table td {
+    vertical-align: middle;
+}

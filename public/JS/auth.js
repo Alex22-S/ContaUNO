@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Si el usuario ya tiene una sesión, lo mandamos a la app principal
+    // URL base del servidor backend
+    const API_BASE_URL = 'http://localhost:3000';
+
+    // Si el usuario ya tiene una sesión en sessionStorage, lo redirigimos
     if (sessionStorage.getItem('contaunoUser')) {
         window.location.href = 'index.html';
     }
 
     const loginForm = document.getElementById('login-form');
-    const signupLink = document.getElementById('signup-link');
     const errorDisplay = document.getElementById('login-error');
     const themeToggle = document.getElementById('theme-toggle');
 
@@ -30,82 +32,33 @@ document.addEventListener('DOMContentLoaded', () => {
             errorDisplay.textContent = '';
 
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch(`${API_BASE_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
+                
                 const data = await response.json();
+
                 if (response.ok) {
-                    sessionStorage.setItem('contaunoUser', JSON.stringify(data));
+                    // --- LÓGICA CLAVE ---
+                    // 1. Guardamos el token en localStorage para usarlo en futuras peticiones
+                    localStorage.setItem('contaunoToken', data.token);
+                    
+                    // 2. Guardamos info del usuario para mostrar en la UI si es necesario
+                    sessionStorage.setItem('contaunoUser', JSON.stringify({ username }));
+
+                    // 3. Redirigimos a la aplicación principal
                     window.location.href = 'index.html';
                 } else {
+                    // Si el login falla, limpiamos cualquier token viejo que pudiera existir
+                    localStorage.removeItem('contaunoToken');
+                    sessionStorage.removeItem('contaunoUser');
                     errorDisplay.textContent = data.message;
                 }
             } catch (error) {
                 errorDisplay.textContent = 'No se pudo conectar con el servidor.';
                 console.error('Error de conexión:', error);
-            }
-        });
-    }
-
-    // --- Lógica para la VENTANA MODAL DE REGISTRO ---
-    const signupModal = document.getElementById('signup-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const signupFormModal = document.getElementById('signup-form-modal');
-
-    if (signupLink) {
-        signupLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            signupModal.classList.add('active');
-        });
-    }
-
-    function closeModal() {
-        if (signupModal) signupModal.classList.remove('active');
-    }
-
-    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-    if (signupModal) signupModal.addEventListener('click', (e) => { if (e.target === signupModal) closeModal(); });
-    document.addEventListener('keydown', (e) => { if (e.key === "Escape" && signupModal?.classList.contains('active')) closeModal(); });
-    
-    if (signupFormModal) {
-        signupFormModal.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const usernameInput = document.getElementById('signup-username');
-            const passwordInput = document.getElementById('signup-password');
-            const passwordConfirmInput = document.getElementById('signup-password-confirm');
-            const errorDisplayModal = document.getElementById('signup-modal-error');
-
-            const username = usernameInput.value.trim().toLowerCase();
-            const password = passwordInput.value;
-            const passwordConfirm = passwordConfirmInput.value;
-            errorDisplayModal.textContent = '';
-
-            if (!username || !password) { errorDisplayModal.textContent = 'Todos los campos son obligatorios.'; return; }
-            if (password.length < 6) { errorDisplayModal.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
-            if (password !== passwordConfirm) { errorDisplayModal.textContent = 'Las contraseñas no coinciden.'; return; }
-
-            try {
-                const response = await fetch('/api/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await response.json();
-
-                if (response.status === 201) {
-                    // --- CORRECCIÓN AQUÍ ---
-                    // Como este script se carga en una página con 'scripts.js', showNotification funcionará.
-                    showNotification("¡Usuario registrado con éxito! Redirigiendo...", 'success');
-                    setTimeout(() => {
-                       window.location.href = 'login.html';
-                    }, 2500); // Esperamos para que el usuario lea el mensaje.
-                } else {
-                    errorDisplayModal.textContent = data.message;
-                }
-            } catch (error) {
-                errorDisplayModal.textContent = 'No se pudo conectar con el servidor.';
             }
         });
     }
