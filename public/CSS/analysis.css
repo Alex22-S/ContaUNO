@@ -4,8 +4,8 @@
 
 .analysis-report-view {
     display: none; /* Se activa con JS */
-    padding: 100px 2rem 2rem;
-    max-width: 1600px;
+    padding: 2rem 2rem 2rem;
+    max-width: 1400px;
     margin: 0 auto;
     animation: fadeIn 0.5s ease-out;
 }

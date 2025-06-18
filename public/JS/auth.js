@@ -1,65 +1,88 @@
+// --- SCRIPT DE NAVEGACIÓN Y ESTRUCTURA PARA CONTAUNO ---
+
+// Se ejecuta cuando todo el HTML ha sido cargado
 document.addEventListener('DOMContentLoaded', () => {
-    // URL base del servidor backend. Usar una ruta relativa lo hace funcionar tanto en local como en producción (Render).
-    const API_BASE_URL = '/api';
-
-    // Si el usuario ya tiene una sesión en sessionStorage, lo redirigimos
-    if (sessionStorage.getItem('contaunoUser')) {
-        window.location.href = 'index.html';
+    // Lógica de inicio de la aplicación para usuarios logueados:
+    // Oculta la vista 'hero' y muestra el dashboard principal por defecto.
+    const heroView = document.getElementById('hero');
+    if (heroView) {
+        heroView.style.display = 'none';
     }
-
-    const loginForm = document.getElementById('login-form');
-    const errorDisplay = document.getElementById('login-error');
-    const themeToggle = document.getElementById('theme-toggle');
-
-    // Lógica del tema claro/oscuro
-    if (themeToggle) {
-        const savedTheme = localStorage.getItem('theme');
-        document.body.classList.toggle('light-mode', savedTheme === 'light');
-        themeToggle.checked = (savedTheme === 'light');
-
-        themeToggle.addEventListener('change', () => {
-            document.body.classList.toggle('light-mode', themeToggle.checked);
-            localStorage.setItem('theme', themeToggle.checked ? 'light' : 'dark');
-        });
-    }
-
-    // --- Lógica del FORMULARIO DE LOGIN ---
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = e.target.username.value.trim().toLowerCase();
-            const password = e.target.password.value;
-            errorDisplay.textContent = '';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                const data = await response.json();
-
-                if (response.ok) {
-                    // --- LÓGICA CLAVE ---
-                    // 1. Guardamos el token en localStorage para usarlo en futuras peticiones
-                    localStorage.setItem('contaunoToken', data.token);
-                    
-                    // 2. Guardamos info del usuario para mostrar en la UI si es necesario
-                    sessionStorage.setItem('contaunoUser', JSON.stringify({ username }));
-
-                    // 3. Redirigimos a la aplicación principal
-                    window.location.href = 'index.html';
-                } else {
-                    // Si el login falla, limpiamos cualquier token viejo que pudiera existir
-                    localStorage.removeItem('contaunoToken');
-                    sessionStorage.removeItem('contaunoUser');
-                    errorDisplay.textContent = data.message;
-                }
-            } catch (error) {
-                errorDisplay.textContent = 'No se pudo conectar con el servidor.';
-                console.error('Error de conexión:', error);
-            }
-        });
-    }
+    showMainDashboard();
 });
+
+// 1. Función Central para Ocultar Todas las Vistas
+// Esta función limpia la pantalla antes de mostrar una nueva vista.
+function hideAllViews() {
+    const views = [
+        'hero', 'main-dashboard', 'calendar-view', 'form-view', 
+        'balance-view', 'invoices-view', 'full-analysis-view', 
+        'inventory-view', 'savings-view', 'cashflow-view', 'reminders-view'
+    ];
+
+    views.forEach(id => {
+        const view = document.getElementById(id);
+        if (view) {
+            view.style.display = 'none';
+        }
+    });
+}
+
+// 2. Funciones Específicas para Mostrar Cada Vista
+// Estas son las funciones que se llaman desde los `onclick` en tu HTML.
+
+function showHero() {
+    hideAllViews();
+    // 'flex' para que el centrado de los elementos del hero funcione correctamente
+    document.getElementById('hero').style.display = 'flex'; 
+}
+
+function showMainDashboard() {
+    hideAllViews();
+    // 'block' es el display por defecto para un div
+    document.getElementById('main-dashboard').style.display = 'block'; 
+}
+
+function showCalendar() {
+    hideAllViews();
+    document.getElementById('calendar-view').style.display = 'block';
+}
+
+function showForm() {
+    hideAllViews();
+    document.getElementById('form-view').style.display = 'block';
+}
+
+function showBalanceView() {
+    hideAllViews();
+    document.getElementById('balance-view').style.display = 'block';
+}
+
+function showInvoicesView() {
+    hideAllViews();
+    document.getElementById('invoices-view').style.display = 'block';
+}
+
+function showInventoryView() {
+    hideAllViews();
+    document.getElementById('inventory-view').style.display = 'block';
+}
+
+function showSavingsView() {
+    hideAllViews();
+    document.getElementById('savings-view').style.display = 'block';
+}
+
+function showCashflowView() {
+    hideAllViews();
+    document.getElementById('cashflow-view').style.display = 'block';
+}
+
+function showRemindersView() {
+    hideAllViews();
+    document.getElementById('reminders-view').style.display = 'block';
+}
+
+// Nota: La función para el reporte de análisis completo ('full-analysis-view')
+// probablemente ya la llamas desde tu 'balance.js', lo cual está perfecto.
+// Si necesitas llamarla desde otro lugar, puedes crear aquí un showFullAnalysisView().

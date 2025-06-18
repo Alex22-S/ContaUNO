@@ -178,3 +178,248 @@
     transform: scale(1.2);
     color: var(--text-primary);
 }
+
+/* ... (Todo tu CSS existente de login.css va aquí arriba) ... */
+
+
+/* =================================================== */
+/* === ✅ NUEVO: ESTILOS PARA BOTONES SOCIALES      === */
+/* =================================================== */
+
+.social-login-btn {
+    width: 100%;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem; /* Espacio entre el logo y el texto */
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-primary);
+}
+
+.social-login-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--input-focus-border);
+    box-shadow: var(--input-focus-shadow);
+}
+
+.social-login-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+/* ... (Todo tu CSS existente de login.css va aquí arriba) ... */
+
+/* =================================================== */
+/* === ✅ ESTILOS PARA BOTONES SOCIALES CORREGIDOS === */
+/* =================================================== */
+
+.social-buttons-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-login-btn {
+    flex: 1; /* Ocupan el mismo espacio */
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-primary);
+}
+
+.social-login-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--input-focus-border);
+    box-shadow: var(--input-focus-shadow);
+}
+
+.social-login-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+/* Cambiamos el texto del botón principal de registro */
+.login-btn {
+    margin-top: 0; /* Quitamos el margen superior que ya no es necesario */
+}
+
+/* ... (Todo tu CSS existente de login.css va aquí arriba) ... */
+
+/* ============================================== */
+/* === ✅ ESTILOS PARA FORMULARIO DE PERFIL === */
+/* ============================================== */
+
+/* Contenedor para los radio buttons con apariencia de botones */
+.segmented-control {
+    display: flex;
+    width: 100%;
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.segmented-control input[type="radio"] {
+    display: none; /* Ocultamos los radio buttons reales */
+}
+
+.segmented-control label {
+    flex: 1; /* Cada opción ocupa el 50% del espacio */
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    background-color: var(--input-bg);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Estilo para la opción seleccionada */
+.segmented-control input[type="radio"]:checked + label {
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+}
+
+.segmented-control label:first-of-type {
+    border-right: 1px solid var(--input-border);
+}
+
+/* Clase para ocultar los campos de negocio */
+.hidden {
+    display: none;
+}
+
+/* ... (Todo tu CSS existente de login.css va aquí arriba) ... */
+
+/* ============================================== */
+/* === ✅ ESTILOS PARA FORMULARIO DE PERFIL === */
+/* ============================================== */
+
+/* Contenedor para los radio buttons con apariencia de botones */
+.segmented-control {
+    display: flex;
+    width: 100%;
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.segmented-control input[type="radio"] {
+    display: none; /* Ocultamos los radio buttons reales */
+}
+
+.segmented-control label {
+    flex: 1; /* Cada opción ocupa el 50% del espacio */
+    padding: 1rem;
+    margin-bottom: 0; /* Anulamos el margen de label general */
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: var(--input-bg);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Estilo para la opción seleccionada */
+.segmented-control input[type="radio"]:checked + label {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 700;
+}
+
+.segmented-control label:first-of-type {
+    border-right: 1px solid var(--input-border);
+}
+
+/* Campos de Negocio con Transición */
+#business-fields {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.5s ease-out, opacity 0.3s ease-in;
+}
+
+#business-fields.visible {
+    max-height: 500px; /* Suficiente altura para los campos */
+    opacity: 1;
+    transition: max-height 0.5s ease-in, opacity 0.5s ease-out;
+}
+
+/* Estilo para fieldset y legend */
+fieldset.form-group {
+    border: none;
+    padding: 0;
+}
+
+fieldset.form-group legend {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    padding: 0;
+}
+
+
+/* === ESTADO DE CARGA PARA BOTONES === */
+.login-btn {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-btn .spinner {
+    display: none;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.login-btn.is-loading .btn-text {
+    opacity: 0;
+}
+
+.login-btn.is-loading .spinner {
+    display: block;
+}
+
+.login-btn:disabled {
+    cursor: not-allowed;
+    background: var(--text-secondary);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* === FEEDBACK DE VALIDACIÓN === */
+input:invalid:not(:placeholder-shown) {
+  border-color: var(--danger-color);
+}
+
+input:invalid:not(:placeholder-shown) + .error-feedback {
+  display: block;
+}

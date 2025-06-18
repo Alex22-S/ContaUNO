@@ -28,10 +28,17 @@ function populateBalanceSelectors() {
     yearSelect.value = now.getFullYear();
 }
 
+/**
+ * ✅ [FUNCIÓN MEJORADA]
+ * Gestiona el cambio entre las vistas Semanal, Mensual y Anual.
+ * Oculta/muestra los selectores de fecha y actualiza la clase activa del botón.
+ * @param {string} viewToShow - 'weekly', 'monthly', or 'annual'.
+ */
 function switchBalanceView(viewToShow) {
     const monthSelect = document.getElementById('balance-month-select');
     const yearSelect = document.getElementById('balance-year-select');
 
+    // Controla la visibilidad de los filtros de fecha
     if (viewToShow === 'weekly') {
         monthSelect.style.display = 'inline-block';
         yearSelect.style.display = 'inline-block';
@@ -43,19 +50,30 @@ function switchBalanceView(viewToShow) {
         yearSelect.style.display = 'none';
     }
 
+    // Cambia el botón activo
     document.querySelectorAll('.balance-view-toggle button').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${viewToShow}-view`).classList.add('active');
     
+    // Vuelve a dibujar la vista con la nueva selección
     updateBalanceView(); 
 }
 
+/**
+ * ✅ [FUNCIÓN MEJORADA]
+ * Función central que se ejecuta para dibujar o redibujar todo el contenido
+ * de la vista de balance según la pestaña activa.
+ */
 async function updateBalanceView() {
     const month = parseInt(document.getElementById('balance-month-select').value);
     const year = parseInt(document.getElementById('balance-year-select').value);
+    
+    // Detecta qué vista está activa mirando el botón con la clase .active
     const activeView = document.querySelector('.balance-view-toggle button.active').id.split('-')[1];
 
+    // Obtiene los datos más recientes de Firestore
     const allTransactions = await getTransactionsForBalance();
     
+    // Llama a la función de renderizado correspondiente
     if (activeView === 'weekly') {
         renderWeeklyView(allTransactions, month, year);
     } else if (activeView === 'monthly') {
@@ -338,15 +356,35 @@ function setupActionButtons(summary, transactions, month, year, viewType) {
 }
 
 
+/**
+ * [FUNCIÓN CORREGIDA Y ACTUALIZADA]
+ * Obtiene todas las transacciones del usuario actual desde Firestore.
+ * Reemplaza la lógica anterior que usaba localStorage.
+ */
 async function getTransactionsForBalance() {
+    // Las variables 'currentUser' y 'db' son globales, definidas en scripts.js y firebase-config.js
+    if (!currentUser) {
+        console.log("Usuario no autenticado. No se pueden cargar transacciones del balance.");
+        return [];
+    }
+
     try {
-        const savedTransactions = localStorage.getItem('contauno_transactions');
-        return savedTransactions ? Object.values(JSON.parse(savedTransactions)).flat() : [];
+        const snapshot = await db.collection('users').doc(currentUser.uid).collection('transactions').get();
+        const transactions = [];
+        snapshot.forEach(doc => {
+            transactions.push({ id: doc.id, ...doc.data() });
+        });
+        return transactions;
     } catch (error) {
-        console.error("Error al obtener las transacciones:", error);
+        console.error("Error al obtener las transacciones desde Firestore:", error);
+        // Asumiendo que tienes una función global showNotification
+        if(typeof showNotification === 'function') {
+            showNotification("No se pudieron cargar los datos del balance. Revisa tu conexión.", "error");
+        }
         return [];
     }
 }
+
 
 function formatCurrency(value) {
     return new Intl.NumberFormat('es-CO', {
@@ -427,67 +465,105 @@ function renderBarChart(labels, incomeData, expenseData, title) {
 }
 
 function generateEnhancedMonthlyPDF(summary, transactions, reportTitle) {
+    // Nota: Esta función actualmente solo crea un PDF vacío.
+    // Se necesitaría agregar contenido usando doc.text, doc.autoTable, etc.
     const { jsPDF } = window.jspdf;
     if (typeof jsPDF === 'undefined' || typeof window.jspdf.autoTable === 'undefined') {
         showNotification("Error: La librería PDF no se ha cargado.", 'error');
         return;
     }
     const doc = new jsPDF();
+
+    // Aquí iría el código para agregar títulos, tablas y resúmenes al PDF.
+    doc.text(reportTitle, 14, 20);
+    // ... agregar más contenido ...
+
     doc.save(`${reportTitle.replace(/ /g, '_')}.pdf`);
 }
 
 
-// ======================= MODAL DE DETALLES (Genérico) ========================
+// =========================================================================
+// === ✅ [NUEVO CÓDIGO] MANEJO GLOBAL Y CORREGIDO DE MODALES ================
+// =========================================================================
 
+/**
+ * Cierra todos los modales que estén abiertos.
+ * Lo hace quitando la clase 'is-open' que controla la visibilidad.
+ */
+function closeAllModals() {
+    document.querySelectorAll('.modal.is-open').forEach(modal => {
+        modal.classList.remove('is-open');
+    });
+}
+
+// Se ejecuta cuando todo el HTML ha sido cargado
 document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('weekly-details-modal');
-    const closeBtn = document.getElementById('modal-close-btn');
     const balanceContainer = document.getElementById('balance-breakdown-container');
 
-    if (!modal || !closeBtn || !balanceContainer) return;
+    // --- 1. Lógica para ABRIR el modal de detalles ---
+    if (balanceContainer) {
+        balanceContainer.addEventListener('click', async (event) => {
+            const button = event.target.closest('.view-details-btn');
+            if (button && !button.disabled) {
+                const type = button.dataset.type;
+                const allTransactions = await getTransactionsForBalance();
+                let transactionsToShow = [];
+                let periodLabel = '';
 
-    const closeModal = () => modal.style.display = "none";
-    closeBtn.onclick = closeModal;
-    window.onclick = (event) => { if (event.target == modal) closeModal(); }
-    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && modal.style.display === 'block') closeModal();});
-
-    balanceContainer.addEventListener('click', async (event) => {
-        const button = event.target.closest('.view-details-btn');
-        if (button && !button.disabled) {
-            const type = button.dataset.type;
-            const allTransactions = await getTransactionsForBalance();
-            let transactionsToShow = [];
-            let periodLabel = '';
-
-            if (type === 'week') {
-                const startDate = new Date(button.dataset.startDate);
-                const endDate = new Date(button.dataset.endDate);
-                transactionsToShow = allTransactions.filter(t => { const d = new Date(t.date); return d >= startDate && d <= endDate; });
-                const options = { day: 'numeric', month: 'long', timeZone: 'UTC' };
-                periodLabel = `Semana del ${startDate.toLocaleDateString('es-ES', options)} al ${endDate.toLocaleDateString('es-ES', options)}`;
-            } else if (type === 'month') {
-                const month = parseInt(button.dataset.month);
-                const year = parseInt(button.dataset.year);
-                transactionsToShow = allTransactions.filter(t => { const d = new Date(t.date); return d.getUTCMonth() === month && d.getUTCFullYear() === year; });
-                periodLabel = `${FULL_MONTH_NAMES[month]} de ${year}`;
-            } else if (type === 'year') {
-                const year = parseInt(button.dataset.year);
-                transactionsToShow = allTransactions.filter(t => new Date(t.date).getUTCFullYear() === year);
-                periodLabel = `Año ${year}`;
+                if (type === 'week') {
+                    const startDate = new Date(button.dataset.startDate);
+                    const endDate = new Date(button.dataset.endDate);
+                    transactionsToShow = allTransactions.filter(t => { const d = new Date(t.date); return d >= startDate && d <= endDate; });
+                    const options = { day: 'numeric', month: 'long', timeZone: 'UTC' };
+                    periodLabel = `Semana del ${startDate.toLocaleDateString('es-ES', options)} al ${endDate.toLocaleDateString('es-ES', options)}`;
+                } else if (type === 'month') {
+                    const month = parseInt(button.dataset.month);
+                    const year = parseInt(button.dataset.year);
+                    transactionsToShow = allTransactions.filter(t => { const d = new Date(t.date); return d.getUTCMonth() === month && d.getUTCFullYear() === year; });
+                    periodLabel = `${FULL_MONTH_NAMES[month]} de ${year}`;
+                } else if (type === 'year') {
+                    const year = parseInt(button.dataset.year);
+                    transactionsToShow = allTransactions.filter(t => new Date(t.date).getUTCFullYear() === year);
+                    periodLabel = `Año ${year}`;
+                }
+                
+                openDetailsModal(transactionsToShow, periodLabel);
             }
-            
-            openDetailsModal(transactionsToShow, periodLabel);
+        });
+    }
+
+    // --- 2. Lógica para CERRAR CUALQUIER modal ---
+    
+    // Cierra al hacer clic en el fondo oscuro o en un botón de cierre
+    document.addEventListener('click', (event) => {
+        // Si se hace clic en el fondo del modal (la clase '.modal')
+        if (event.target.classList.contains('modal')) {
+            closeAllModals();
+        }
+        // Si se hace clic en cualquier elemento con la clase '.close-btn'
+        if (event.target.classList.contains('close-btn')) {
+            closeAllModals();
+        }
+    });
+
+    // Cierra al presionar la tecla 'Escape'
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeAllModals();
         }
     });
 });
 
+
 /**
  * [FUNCIÓN CORREGIDA]
  * Abre y puebla el modal de detalles con transacciones.
- * Se corrigió la asignación de clase para el color del total neto.
+ * Se corrigió para usar el sistema de clases 'is-open' y el color del total neto.
  */
 function openDetailsModal(transactions, periodLabel) {
     const modal = document.getElementById('weekly-details-modal');
+    if (!modal) return; // Salida segura si el modal no existe
+
     const tableBody = document.getElementById('modal-table-body');
     const rangeDisplay = document.getElementById('modal-week-range');
     const subtotalIncomeEl = document.getElementById('modal-subtotal-income');
@@ -496,7 +572,9 @@ function openDetailsModal(transactions, periodLabel) {
 
     rangeDisplay.textContent = periodLabel;
     tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando...</td></tr>';
-    modal.style.display = 'block';
+    
+    // ✅ CORRECCIÓN: Abre el modal añadiendo la clase 'is-open'
+    modal.classList.add('is-open');
 
     transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
     
@@ -527,6 +605,6 @@ function openDetailsModal(transactions, periodLabel) {
     subtotalExpenseEl.textContent = formatCurrency(periodExpense);
     finalTotalEl.textContent = formatCurrency(finalBalance);
     
-    // --- CORRECCIÓN: Asignar clase de color al elemento correcto ---
+    // ✅ CORRECCIÓN: Asignar clase de color al elemento correcto
     finalTotalEl.className = finalBalance >= 0 ? 'positive-value' : 'negative-value';
 }

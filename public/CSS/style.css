@@ -1,32 +1,46 @@
+html {
+  /* Reduce el tamaño de fuente base para que los 'rem' no crezcan tanto.
+     Puedes probar con valores entre 14px y 15.5px hasta que te guste el resultado. */
+  font-size: 17px;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* ================================================================== */
+/* === PALETA DE COLORES CORREGIDA (ESTILO SIIGO/ALEGRA) === */
+/* ================================================================== */
 :root {
-    /* Paleta Dark (Modificada) */
-    --bg-gradient: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d2d5f 100%);
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.8);
-    --header-bg: rgba(15, 15, 35, 0.8);
+    /* Paleta Dark (Modo Oscuro Profesional) */
+    --primary-color: #0d6efd; /* Azul corporativo primario */
+    --primary-hover: #0b5ed7;
+    --success-color: #198754; /* Verde para éxito */
+    --danger-color: #dc3545;  /* Rojo para peligro/cancelar */
+    --warning-color: #ffc107; /* Amarillo para advertencia */
+    
+    --bg-gradient: linear-gradient(135deg, #1c1c1c 0%, #2a2a2a 100%);
+    --text-primary: #f8f9fa;
+    --text-secondary: #adb5bd;
+    --header-bg: rgba(33, 37, 41, 0.85);
     --header-border: rgba(255, 255, 255, 0.1);
-    /* Cambio clave: fondo de tarjeta sólido en modo oscuro */
-    --card-bg: #1e1e48; /* Era rgba(255, 255, 255, 0.05) */
+    --card-bg: #212529;
     --card-border: rgba(255, 255, 255, 0.15);
-    --card-hover-border: rgba(0, 212, 255, 0.5);
-    --card-hover-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
-    --input-bg: rgba(255, 255, 255, 0.1);
-    --input-border: rgba(255, 255, 255, 0.2);
-    --input-focus-border: #00d4ff;
-    --input-focus-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-    --logo-gradient: linear-gradient(45deg, #00d4ff, #7c3aed);
-    --hero-title-gradient: linear-gradient(45deg, #ffffff, #00d4ff, #7c3aed);
-    --hero-shadow: 0 0 50px rgba(0, 212, 255, 0.3);
-    --particle-bg: rgba(0, 212, 255, 0.3);
-    /* Colores primarios para gradientes y botones */
-    --primary: #6366f1;
-    --primary-light: #818cf8;
+    --card-hover-border: var(--primary-color);
+    --card-hover-shadow: 0 10px 30px rgba(13, 110, 253, 0.2);
+    --input-bg: #343a40;
+    --input-border: #495057;
+    --input-focus-border: var(--primary-color);
+    --input-focus-shadow: 0 0 15px rgba(13, 110, 253, 0.25);
+    --logo-gradient: linear-gradient(45deg, #0d6efd, #0dcaf0);
+    --hero-title-gradient: linear-gradient(45deg, #ffffff, #a3c7ff);
+    --hero-shadow: 0 0 50px rgba(13, 110, 253, 0.2);
+    --particle-bg: rgba(13, 110, 253, 0.3);
+
+    /* ✅ SOLUCIÓN: Variable de fondo para las vistas definida */
+    --view-bg-color: #1c1c1c; 
 }
 
 body {
@@ -37,38 +51,47 @@ body {
     transition: background 0.5s ease, color 0.5s ease;
 }
 
-/* --- Estilos Modo Claro --- */
+/* --- Estilos Modo Claro (Estilo Corporativo Limpio) --- */
 body.light-mode {
-    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    --text-primary: #1e293b;
-    --text-secondary: #475569;
-    --header-bg: rgba(255, 255, 255, 0.7);
-    --header-border: #e2e8f0;
-    --card-bg: #ffffff; /* Fondo blanco sólido para modo claro */
-    --card-border: #e2e8f0;
-    --card-hover-border: #7c3aed;
-    --card-hover-shadow: 0 20px 40px rgba(124, 58, 237, 0.15);
-    --input-bg: #f8fafc;
-    --input-border: #cbd5e1;
-    --input-focus-border: #7c3aed;
-    --input-focus-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
-    --logo-gradient: linear-gradient(45deg, #00aaff, #7c3aed);
-    --hero-title-gradient: linear-gradient(45deg, #1e293b, #00aaff, #7c3aed);
-    --hero-shadow: 0 0 50px rgba(124, 58, 237, 0.2);
-    --particle-bg: rgba(124, 58, 237, 0.3);
-    --primary: #4f46e5;
-    --primary-light: #6366f1;
+    --bg-gradient: #f4f5fb; /* Fondo gris muy claro, casi blanco */
+    --text-primary: #313944; /* Texto oscuro para máxima legibilidad */
+    --text-secondary: #6c757d; /* Texto secundario gris */
+    --header-bg: #ffffff;
+    --header-border: #dee2e6;
+    --card-bg: #ffffff; /* Tarjetas blancas */
+    --card-border: #c7c7c7;
+    --card-hover-border: var(--primary-color);
+    --card-hover-shadow: 0 10px 30px rgba(13, 110, 253, 0.1);
+    --input-bg: #f7f7f7;
+    --input-border: #ced4da;
+    --input-focus-border: var(--primary-color);
+    --input-focus-shadow: 0 0 15px rgba(13, 110, 253, 0.2);
+    --logo-gradient: linear-gradient(45deg, #b12626, #0028ff);
+    --hero-title-gradient: linear-gradient(45deg, #b12626, #0028ff);
+    --hero-shadow: 0 0 50px rgba(13, 110, 253, 0.15);
+    --particle-bg: rgba(13, 110, 253, 0.3);
+
+    /* ✅ SOLUCIÓN: Variable de fondo para las vistas definida para el modo claro */
+    --view-bg-color: #F6FBFF;
 }
 
+/* =============================================================== */
+/* === FIN DE LA CORRECCIÓN DE LA PALETA DE COLORES === */
+/* =============================================================== */
+
+
+/* REEMPLAZA LA ANTERIOR CON ESTA */
 .header {
-    position: fixed;
+    position: fixed; /* La "atornilla" a la pantalla */
     top: 0;
+    left: 0;
     width: 100%;
+    height: 70px; /* Le damos una altura fija */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     background: var(--header-bg);
     border-bottom: 1px solid var(--header-border);
-    z-index: 1000;
+    z-index: 1010; /* Un número alto para que esté por encima de todo */
     transition: all 0.3s ease;
 }
 
@@ -76,12 +99,30 @@ body.light-mode {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    max-width: 1400px;
+    height: 100%; /* Para que los elementos se centren verticalmente */
+    padding: 0 1.5rem; /* Espacio a los lados */
+    max-width: 2000px;
     margin: 0 auto;
 }
 
+.nav-left {
+    display: flex;
+    align-items: center;
+}
+
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.logo img {
+    height: 55px;
+    width: auto;
+}
+
+.logo span {
     font-size: 1.8rem;
     font-weight: 800;
     background: var(--logo-gradient);
@@ -110,12 +151,12 @@ body.light-mode .nav-link {
 }
 
 .nav-link:hover {
-    color: #00d4ff;
+    color: var(--primary-color);
     transform: translateY(-2px);
 }
 
 body.light-mode .nav-link:hover {
-    color: var(--primary);
+    color: var(--primary-color);
 }
 
 .nav-link::after {
@@ -125,7 +166,7 @@ body.light-mode .nav-link:hover {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(45deg, #00d4ff, #7c3aed);
+    background: var(--primary-color);
     transition: width 0.3s ease;
 }
 
@@ -145,7 +186,7 @@ body.light-mode .nav-link:hover {
     cursor: pointer;
     width: 50px;
     height: 26px;
-    background: #2d2d5f;
+    background: #343a40;
     display: block;
     border-radius: 50px;
     position: relative;
@@ -178,9 +219,11 @@ body.light-mode .theme-switcher label {
 .theme-switcher .sun {
     left: 6px;
     opacity: 0;
+    color: #f8f9fa; /* Color del ícono del sol */
 }
 .theme-switcher .moon {
     right: 6px;
+    color: #f8f9fa; /* Color del ícono de la luna */
 }
 .theme-switcher input:checked + label .sun {
     opacity: 1;
@@ -210,14 +253,14 @@ body.light-mode .theme-switcher label {
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 30% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 70% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
+    background: radial-gradient(circle at 30% 20%, rgba(13, 110, 253, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(13, 202, 240, 0.1) 0%, transparent 50%);
     pointer-events: none;
 }
 
 body.light-mode .hero::before {
-     background: radial-gradient(circle at 30% 20%, rgba(0, 170, 255, 0.1) 0%, transparent 60%),
-                radial-gradient(circle at 70% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 60%);
+     background: radial-gradient(circle at 30% 20%, rgba(13, 110, 253, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(13, 202, 240, 0.08) 0%, transparent 60%);
 }
 
 .hero-title {
@@ -278,7 +321,7 @@ body.light-mode .hero::before {
 }
 
 body.light-mode .level-card::before {
-     background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+     background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.03), transparent);
 }
 
 .level-card:hover::before {
@@ -304,15 +347,15 @@ body.light-mode .level-card::before {
 }
 
 .basic .level-icon {
-    background: linear-gradient(45deg, #10b981, #34d399);
+    background: linear-gradient(45deg, var(--success-color), #20c997);
 }
 
 .intermediate .level-icon {
-    background: linear-gradient(45deg, #f59e0b, #fbbf24);
+    background: linear-gradient(45deg, var(--warning-color), #fd7e14);
 }
 
 .advanced .level-icon {
-    background: linear-gradient(45deg, #7c3aed, #a855f7);
+    background: linear-gradient(45deg, var(--primary-color), #3f86fc);
 }
 
 .level-title {
@@ -328,6 +371,18 @@ body.light-mode .level-card::before {
     line-height: 1.5;
     font-size: 0.95rem;
     transition: color 0.5s ease;
+}
+
+/* === NUEVO: CONTENEDOR PRINCIPAL PARA LAS VISTAS === */
+.main-view-container {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.081);
+    max-width: 1600px;
+    margin: 0 auto;
+    
 }
 
 .dashboard {
@@ -391,7 +446,7 @@ body.light-mode .back-btn {
 }
 
 body.light-mode .back-btn:hover {
-    background: #e2e8f0;
+    background: #e9ecef;
 }
 
 .functions-grid {
@@ -416,7 +471,7 @@ body.light-mode .back-btn:hover {
 
 .function-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(0, 212, 255, 0.3);
+    border-color: var(--primary-color);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
@@ -429,11 +484,11 @@ body.light-mode .function-card:hover {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: #00d4ff;
+    color: var(--primary-color);
 }
 
 body.light-mode .function-title {
-    color: var(--primary);
+    color: var(--primary-color);
 }
 
 .function-description {
@@ -535,3 +590,5 @@ body.light-mode .function-title {
         padding: 80px 1rem 1rem;
     }
 }
+/* === SECCIÓN DE LAYOUT ELIMINADA DE AQUÍ === */
+/* Todas las reglas para .sidebar, .page-content, .hamburger-menu, etc., se han movido a layout.css */

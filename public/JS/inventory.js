@@ -1,150 +1,142 @@
-// === SISTEMA DE INVENTARIO PARA CONTAUNO ===
+// JS/inventory.js (VERSIÓN CORREGIDA Y CON HISTORIAL FUNCIONAL)
 
-document.addEventListener('DOMContentLoaded', () => {
-    // La inicialización ahora se llama desde showInventoryView() para asegurar que los elementos existan.
-});
-
-let products = [];
-const INVENTORY_KEY = 'contauno_products';
+// Las variables globales 'currentUser', 'products', 'transactions' y la constante 'db' de Firebase están disponibles globalmente.
 
 function initializeInventory() {
-    loadProducts();
+    // Esta función se llama desde showInventoryView() en scripts.js
     setupInventoryEventListeners();
-    renderProductTable();
-    renderProductCategories();
-    // Ya no renderizamos el historial aquí, se hará al abrir el modal.
-    resetInventoryForm();
+    renderProducts();
+    populateProductCategoriesDatalist();
 }
 
 function setupInventoryEventListeners() {
-    // Formularios y botones principales
     const form = document.getElementById('inventory-form');
-    form.removeEventListener('submit', handleInventoryFormSubmit);
-    form.addEventListener('submit', handleInventoryFormSubmit);
-
     const searchInput = document.getElementById('product-search-input');
-    searchInput.removeEventListener('keyup', handleSearch);
-    searchInput.addEventListener('keyup', handleSearch);
-    
-    const cancelBtn = document.getElementById('cancel-edit-btn');
-    cancelBtn.removeEventListener('click', resetInventoryForm);
-    cancelBtn.addEventListener('click', resetInventoryForm);
-
-    // --- NUEVO: Listeners para el modal de historial ---
-    const showHistoryBtn = document.getElementById('btn-show-history');
-    showHistoryBtn.addEventListener('click', showInventoryHistoryModal);
-
-    const closeHistoryBtn = document.getElementById('inventory-history-modal-close-btn'); // <-- CORRECCIÓN AQUÍ
-    closeHistoryBtn.addEventListener('click', hideInventoryHistoryModal);
-    
-    const historyModal = document.getElementById('inventory-history-modal');
-    historyModal.addEventListener('click', (e) => {
-        // Cierra el modal si se hace clic en el fondo oscuro
-        if (e.target === historyModal) {
-            hideInventoryHistoryModal();
-        }
-    });
-}
-
-function loadProducts() {
-    const savedProducts = localStorage.getItem(INVENTORY_KEY);
-    products = savedProducts ? JSON.parse(savedProducts) : [];
-}
-
-function saveProducts() {
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(products));
-}
-
-function renderProductTable() {
     const tableBody = document.getElementById('product-table-body');
-    const emptyMessage = document.getElementById('product-list-empty');
-    const searchFilter = document.getElementById('product-search-input').value.toLowerCase();
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const showHistoryBtn = document.getElementById('btn-show-history'); // Botón de historial
+    
+    if (form) form.addEventListener('submit', handleProductSubmit);
+    if (searchInput) searchInput.addEventListener('input', renderProducts);
+    if (cancelBtn) cancelBtn.addEventListener('click', clearProductForm);
+    
+    // --- NUEVO: Event listener para el botón de historial ---
+    if (showHistoryBtn) showHistoryBtn.addEventListener('click', showInventoryHistory);
 
-    loadProducts(); // Asegura que los datos estén frescos
-    const filteredProducts = products.filter(p => 
-        p.name.toLowerCase().includes(searchFilter) ||
-        (p.sku && p.sku.toLowerCase().includes(searchFilter)) ||
-        p.category.toLowerCase().includes(searchFilter)
-    );
+    if (tableBody) {
+        tableBody.addEventListener('click', (e) => {
+            const editButton = e.target.closest('.edit-product-btn');
+            const deleteButton = e.target.closest('.delete-product-btn');
 
-    tableBody.innerHTML = '';
-    const productTableContainer = document.querySelector('#product-table').parentElement.parentElement;
-
-    if (filteredProducts.length === 0) {
-        if (emptyMessage) emptyMessage.style.display = 'block';
-        if (productTableContainer) productTableContainer.style.display = 'none';
-    } else {
-        if (emptyMessage) emptyMessage.style.display = 'none';
-        if (productTableContainer) productTableContainer.style.display = 'block';
-
-        filteredProducts.forEach(product => {
-            const stockClass = product.stock <= 0 ? 'stock-out' : (product.stock <= 10 ? 'stock-low' : '');
-            const row = `
-                <tr>
-                    <td>
-                        <span class="product-name-cell">${product.name}</span>
-                        <span class="product-sku-cell">${product.sku || 'Sin SKU'}</span>
-                    </td>
-                    <td>${product.category}</td>
-                    <td><span class="stock-indicator ${stockClass}">${product.stock}</span></td>
-                    <td>${formatCurrency(product.weightedAverageCost)}</td>
-                    <td>${formatCurrency(product.price)}</td>
-                    <td class="action-buttons">
-                        <button onclick="editProduct('${product.id}')" title="Editar Producto">✏️</button>
-                        <button onclick="deleteProduct('${product.id}')" title="Eliminar Producto">🗑️</button>
-                    </td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
+            if (editButton) {
+                const id = editButton.dataset.id;
+                editProduct(id);
+            }
+            if (deleteButton) {
+                const id = deleteButton.dataset.id;
+                deleteProduct(id);
+            }
         });
     }
 }
 
-function renderProductCategories() {
-    const datalist = document.getElementById('product-categories-list');
-    const uniqueCategories = [...new Set(products.map(p => p.category))];
-    datalist.innerHTML = uniqueCategories.map(cat => `<option value="${cat}"></option>`).join('');
-}
+function renderProducts() {
+    const tableBody = document.getElementById('product-table-body');
+    const emptyState = document.getElementById('product-list-empty');
+    const searchInput = document.getElementById('product-search-input');
+    if (!tableBody || !emptyState) return;
 
-function handleSearch() {
-    renderProductTable();
-}
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const filteredProducts = products.filter(p => 
+        p.name.toLowerCase().includes(searchTerm) ||
+        (p.sku && p.sku.toLowerCase().includes(searchTerm)) ||
+        (p.category && p.category.toLowerCase().includes(searchTerm))
+    );
 
-function handleInventoryFormSubmit(e) {
-    e.preventDefault();
-    
-    const editingId = document.getElementById('editing-product-id').value;
-    
-    if (editingId) {
-        const productIndex = products.findIndex(p => p.id === editingId);
-        if (productIndex > -1) {
-            products[productIndex].name = document.getElementById('product-name').value.trim();
-            products[productIndex].sku = document.getElementById('product-sku').value.trim();
-            products[productIndex].description = document.getElementById('product-description').value.trim();
-            products[productIndex].category = document.getElementById('product-category').value.trim();
-            products[productIndex].price = parseFloat(document.getElementById('product-price').value);
-        }
+    tableBody.innerHTML = '';
+    if (filteredProducts.length === 0) {
+        emptyState.style.display = 'block';
+        tableBody.style.display = 'none';
     } else {
-        const cost = parseFloat(document.getElementById('product-cost').value);
-        const stock = parseInt(document.getElementById('initial-stock').value, 10);
-        const newProduct = {
-            id: `prod_${Date.now()}`,
-            name: document.getElementById('product-name').value.trim(),
-            sku: document.getElementById('product-sku').value.trim(),
-            description: document.getElementById('product-description').value.trim(),
-            category: document.getElementById('product-category').value.trim(),
-            price: parseFloat(document.getElementById('product-price').value),
-            stock: stock,
-            weightedAverageCost: cost
-        };
-        products.push(newProduct);
+        emptyState.style.display = 'none';
+        tableBody.style.display = '';
+        filteredProducts.forEach(product => {
+            const tr = document.createElement('tr');
+            let stockClass = '';
+            if (product.stock <= 0) stockClass = 'stock-out';
+            else if (product.stock <= 5) stockClass = 'stock-low';
+
+            tr.innerHTML = `
+                <td>
+                    <span class="product-name-cell">${product.name}</span>
+                    <span class="product-sku-cell">${product.sku || 'N/A'}</span>
+                </td>
+                <td>${product.category || 'Sin categoría'}</td>
+                <td class="${stockClass}">${product.stock}</td>
+                <td>${formatCurrency(product.cost)}</td>
+                <td>${formatCurrency(product.price)}</td>
+                <td class="action-buttons">
+                    <button class="edit-product-btn" data-id="${product.id}" title="Editar">✏️</button>
+                    <button class="delete-product-btn" data-id="${product.id}" title="Eliminar">🗑️</button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+}
+
+async function handleProductSubmit(e) {
+    e.preventDefault();
+    if (!currentUser) {
+        showNotification("Debes iniciar sesión.", "error");
+        return;
     }
 
-    saveProducts();
-    renderProductTable();
-    renderProductCategories();
-    resetInventoryForm();
-    showNotification(`Producto ${editingId ? 'actualizado' : 'guardado'} con éxito.`, 'success');
+    const editingId = document.getElementById('editing-product-id').value;
+    const productData = {
+        name: document.getElementById('product-name').value.trim(),
+        sku: document.getElementById('product-sku').value.trim(),
+        description: document.getElementById('product-description').value.trim(),
+        category: document.getElementById('product-category').value.trim(),
+        cost: parseFloat(document.getElementById('product-cost').value),
+        price: parseFloat(document.getElementById('product-price').value),
+    };
+
+    if (!editingId) {
+        productData.stock = parseInt(document.getElementById('initial-stock').value, 10);
+    }
+    
+    if (!productData.name || isNaN(productData.cost) || isNaN(productData.price) || (!editingId && isNaN(productData.stock))) {
+        showNotification("Nombre, costo, precio y stock inicial son campos requeridos.", "error");
+        return;
+    }
+
+    try {
+        const userProductsRef = db.collection('users').doc(currentUser.uid).collection('products');
+        if (editingId) {
+            await userProductsRef.doc(editingId).update(productData);
+            
+            const index = products.findIndex(p => p.id === editingId);
+            if (index > -1) {
+                products[index] = { ...products[index], ...productData };
+            }
+            showNotification("Producto actualizado con éxito.", "success");
+        } else {
+            const docRef = await userProductsRef.add(productData);
+            products.push({ ...productData, id: docRef.id });
+            showNotification("Producto añadido con éxito.", "success");
+        }
+        
+        products.sort((a, b) => a.name.localeCompare(b.name));
+
+        clearProductForm();
+        renderProducts();
+        populateProductCategoriesDatalist();
+
+    } catch (error) {
+        console.error("Error guardando producto en Firestore:", error);
+        showNotification("Error al guardar el producto. Revisa tu conexión.", "error");
+    }
 }
 
 function editProduct(id) {
@@ -153,101 +145,106 @@ function editProduct(id) {
 
     document.getElementById('editing-product-id').value = product.id;
     document.getElementById('product-name').value = product.name;
-    document.getElementById('product-sku').value = product.sku;
-    document.getElementById('product-description').value = product.description;
-    document.getElementById('product-category').value = product.category;
+    document.getElementById('product-sku').value = product.sku || '';
+    document.getElementById('product-description').value = product.description || '';
+    document.getElementById('product-category').value = product.category || '';
+    document.getElementById('product-cost').value = product.cost;
     document.getElementById('product-price').value = product.price;
     
-    document.getElementById('product-cost').value = product.weightedAverageCost;
-    document.getElementById('initial-stock').value = product.stock;
-
-    document.getElementById('initial-stock').disabled = true;
-    document.getElementById('product-cost').disabled = true;
+    const stockInput = document.getElementById('initial-stock');
+    stockInput.value = product.stock;
+    stockInput.disabled = true;
 
     document.getElementById('product-form-title').textContent = 'Editar Producto';
     document.getElementById('save-product-btn').textContent = '💾 Actualizar Producto';
     document.getElementById('cancel-edit-btn').style.display = 'inline-block';
     
-    document.querySelector('.product-form-container').scrollIntoView({ behavior: 'smooth' });
+    // CORRECCIÓN: Usamos querySelector para buscar por CLASE en lugar de ID
+    const formContainer = document.querySelector('.product-form-container');
+    if (formContainer) {
+        formContainer.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 async function deleteProduct(id) {
-    const product = products.find(p => p.id === id);
-    if (!product) return;
+    if (!currentUser) return;
     
+    const product = products.find(p => p.id === id);
+    if(!product) return;
+
+    const isProductInUse = Object.values(transactions).flat().some(tx => 
+        tx.isInventory && tx.items.some(item => item.productId === id)
+    );
+
+    if(isProductInUse) {
+        showNotification(`No se puede eliminar "${product.name}" porque tiene transacciones asociadas.`, 'error');
+        return;
+    }
+
     const confirmed = await showConfirmation({
         title: '¿Eliminar Producto?',
-        message: `¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`,
+        message: `¿Seguro que quieres eliminar "${product.name}"? Esta acción no se puede deshacer.`,
         confirmText: 'Sí, Eliminar'
     });
 
     if (confirmed) {
-        products = products.filter(p => p.id !== id);
-        saveProducts();
-        renderProductTable();
-        renderInventoryHistory(); // Actualiza el historial si se elimina un producto
-        showNotification('Producto eliminado.', 'success');
+        try {
+            await db.collection('users').doc(currentUser.uid).collection('products').doc(id).delete();
+            products = products.filter(p => p.id !== id);
+            renderProducts();
+            showNotification('Producto eliminado.', 'success');
+        } catch (error) {
+            console.error("Error eliminando producto:", error);
+            showNotification("Error al eliminar el producto.", 'error');
+        }
     }
 }
 
-function resetInventoryForm() {
+function clearProductForm() {
     document.getElementById('inventory-form').reset();
     document.getElementById('editing-product-id').value = '';
     
-    document.getElementById('initial-stock').disabled = false;
-    document.getElementById('product-cost').disabled = false;
-
+    const stockInput = document.getElementById('initial-stock');
+    stockInput.disabled = false;
+    
     document.getElementById('product-form-title').textContent = 'Añadir Nuevo Producto';
-    document.getElementById('save-product-btn').textContent = '💾 Guardar Producto';
+    document.getElementById('save-product-btn').innerHTML = '<i data-lucide="save"></i> Guardar Producto';
     document.getElementById('cancel-edit-btn').style.display = 'none';
 }
 
-function updateProductStock(productId, quantityChange, purchaseCost = null) {
-    loadProducts();
-    const productIndex = products.findIndex(p => p.id === productId);
-    if (productIndex === -1) {
-        console.error('Producto no encontrado para actualizar stock:', productId);
-        return false;
-    }
+function populateProductCategoriesDatalist() {
+    const datalist = document.getElementById('product-categories-list');
+    if (!datalist) return;
 
-    const product = products[productIndex];
-
-    if (quantityChange < 0 && product.stock < Math.abs(quantityChange)) {
-        showNotification(`Stock insuficiente para "${product.name}". Solo hay ${product.stock} disponibles.`, 'error');
-        return false; 
-    }
-
-    if (quantityChange > 0 && purchaseCost !== null) {
-        const oldStock = product.stock;
-        const oldWAC = product.weightedAverageCost;
-        const totalStock = oldStock + quantityChange;
-        
-        if (totalStock > 0) {
-            product.weightedAverageCost = ((oldStock * oldWAC) + (quantityChange * purchaseCost)) / totalStock;
-        } else {
-            product.weightedAverageCost = purchaseCost;
-        }
-    }
-    
-    product.stock += quantityChange;
-    saveProducts();
-    return true;
+    const uniqueCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    datalist.innerHTML = uniqueCategories.map(cat => `<option value="${cat}"></option>`).join('');
 }
 
-function renderInventoryHistory() {
-    const historyBody = document.getElementById('inventory-history-body');
-    const emptyMessage = document.getElementById('inventory-history-empty');
-    
-    const allTransactions = JSON.parse(localStorage.getItem('contauno_transactions') || '{}');
-    const historyMovements = [];
 
-    Object.values(allTransactions).flat().forEach(tx => {
-        if (tx.isInventory && tx.items && tx.items.length > 0) {
+// =================================================================
+// === NUEVA FUNCIONALIDAD: MOSTRAR HISTORIAL DE MOVIMIENTOS     ===
+// =================================================================
+function showInventoryHistory() {
+    const modal = document.getElementById('inventory-history-modal');
+    const tableBody = document.getElementById('inventory-history-body');
+    const emptyState = document.getElementById('inventory-history-empty');
+
+    if (!modal || !tableBody || !emptyState) {
+        console.error("No se encontraron los elementos del modal de historial.");
+        return;
+    }
+
+    // 1. Recolectar y procesar todos los movimientos de inventario
+    const historyEntries = [];
+    const allTransactions = Object.values(transactions).flat(); // Obtener una lista plana de todas las transacciones
+
+    allTransactions.forEach(tx => {
+        if (tx.isInventory && tx.items) {
             tx.items.forEach(item => {
-                historyMovements.push({
+                historyEntries.push({
                     date: tx.date,
                     productName: item.productName,
-                    type: tx.type, 
+                    type: tx.type, // 'income' (venta) o 'expense' (compra)
                     quantity: item.quantity,
                     totalValue: item.quantity * item.price
                 });
@@ -255,46 +252,39 @@ function renderInventoryHistory() {
         }
     });
 
-    historyMovements.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // 2. Ordenar los movimientos por fecha, del más reciente al más antiguo
+    historyEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    historyBody.innerHTML = '';
-    const historyTableContainer = document.querySelector('#inventory-history-table').parentElement.parentElement;
-
-    if (historyMovements.length === 0) {
-        emptyMessage.style.display = 'block';
-        historyTableContainer.style.display = 'none';
-
+    // 3. Renderizar la tabla
+    tableBody.innerHTML = '';
+    if (historyEntries.length === 0) {
+        emptyState.style.display = 'block';
     } else {
-        emptyMessage.style.display = 'none';
-        historyTableContainer.style.display = 'block';
-        historyMovements.forEach(move => {
-            const isSale = move.type === 'income';
-            const row = `
-                <tr>
-                    <td>${formatDateForDisplay(move.date)}</td>
-                    <td>${move.productName}</td>
-                    <td>
-                        <span class="history-type ${isSale ? 'sale' : 'purchase'}">
-                            ${isSale ? 'Venta' : 'Compra'}
-                        </span>
-                    </td>
-                    <td>${move.quantity}</td>
-                    <td>${formatCurrency(move.totalValue)}</td>
-                </tr>
+        emptyState.style.display = 'none';
+        historyEntries.forEach(entry => {
+            const tr = document.createElement('tr');
+            const typeText = entry.type === 'income' ? 'Venta' : 'Compra';
+            const typeClass = entry.type === 'income' ? 'sale' : 'purchase';
+
+            tr.innerHTML = `
+                <td>${formatDateForDisplay(entry.date)}</td>
+                <td>${entry.productName}</td>
+                <td><span class="history-type ${typeClass}">${typeText}</span></td>
+                <td>${entry.quantity}</td>
+                <td>${formatCurrency(entry.totalValue)}</td>
             `;
-            historyBody.innerHTML += row;
+            tableBody.appendChild(tr);
         });
     }
-}
 
+    // 4. Mostrar el modal
+    modal.style.display = 'flex';
 
-// --- NUEVO: Funciones para controlar el Modal de Historial ---
-
-function showInventoryHistoryModal() {
-    renderInventoryHistory(); // Asegurarse de que los datos están actualizados al abrir
-    document.getElementById('inventory-history-modal').style.display = 'block';
-}
-
-function hideInventoryHistoryModal() {
-    document.getElementById('inventory-history-modal').style.display = 'none';
+    // 5. Configurar el botón de cierre
+    const closeBtn = document.getElementById('inventory-history-modal-close-btn');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
 }

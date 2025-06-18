@@ -4,7 +4,7 @@
 
 .balance-view {
     display: none; /* Oculto por defecto */
-    padding: 100px 2rem 2rem;
+    padding: 2rem 2rem 2rem;
     max-width: 1400px;
     margin: 0 auto;
     animation: fadeIn 0.5s ease-out;
@@ -19,7 +19,7 @@
     border: 1px solid var(--card-border);
     border-radius: 20px;
     padding: 2rem;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.081);
 }
 
 .balance-header {
@@ -34,7 +34,7 @@
 .balance-main-title {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #313944;
     margin: 0;
 }
 
@@ -56,7 +56,9 @@
     min-width: 120px;
 }
 
-/* --- Estilos para las Pestañas de Navegación --- */
+/* =================================================================== */
+/* === ✅ [NUEVO CÓDIGO] ESTILOS PARA LAS PESTAÑAS DE NAVEGACIÓN === */
+/* =================================================================== */
 .balance-view-toggle {
     display: flex;
     gap: 0.5rem;
@@ -90,8 +92,8 @@ body.light-mode .balance-view-toggle button:hover:not(:disabled) {
 
 
 .balance-view-toggle button.active {
-    background-color: var(--card-bg);
-    color: var(--text-primary);
+    background-color: rgb(0 150 136 / 85%);
+    color: #ffffff;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -108,6 +110,7 @@ body.light-mode .balance-view-toggle button:hover:not(:disabled) {
     display: block;
     animation: fadeIn 0.4s ease-out;
 }
+/* === FIN DEL NUEVO CÓDIGO === */
 
 
 /* --- Panel de Resumen Mensual --- */
@@ -141,8 +144,8 @@ body.light-mode .monthly-summary-panel {
 }
 
 .pdf-btn-main {
-    background: var(--input-focus-border);
-    color: #0f0f23;
+    background: rgb(0 150 136 / 85%);
+    color: #ffffff;
     font-weight: 700;
     border: none;
     padding: 0.8rem 1.5rem;
@@ -160,7 +163,7 @@ body.light-mode .monthly-summary-panel {
 }
 
 body.light-mode .pdf-btn-main {
-    background: var(--primary);
+    background: rgb(0 150 136 / 85%);
     color: #fff;
 }
 
@@ -348,8 +351,8 @@ body.light-mode .chart-container {
 }
 
 .btn-main-action {
-    background: linear-gradient(45deg, var(--primary), var(--primary-light));
-    color: #fff;
+    background: #264ed2;
+    color: #ffffff;
     border: none;
     border-radius: 12px;
     padding: 1rem 2.5rem;
@@ -424,8 +427,8 @@ body.light-mode .chart-container {
 
 /* Botón "Ver Detalles" dentro de las tarjetas de la vista de balance */
 .balance-view .view-details-btn {
-    background-color: var(--primary);
-    color: white;
+    background-color: rgb(0 150 136 / 85%);
+    color: rgb(255, 255, 255);
     border: none;
     padding: 8px 16px;
     border-radius: 8px;
@@ -449,13 +452,13 @@ body.light-mode .chart-container {
     transform: none;
 }
 
-/* El modal de balance es más grande que los modales por defecto */
-#weekly-details-modal .modal-content {
-    width: 70vw;
-    height: 75vh;
-    max-width: 1600px;
-    max-height: 1000px;
-}
+/*
+ * ✅ CORRECCIÓN: SE ELIMINÓ LA REGLA COMPLETA #weekly-details-modal .modal-content
+ * que definía el ancho y alto fijos (width: 70vw; height: 75vh;).
+ * Ahora, el tamaño de este modal se controla con la clase '.large'
+ * y los estilos globales corregidos en index.html, asegurando que
+ * se vea bien sin importar si el sidebar está abierto o cerrado.
+ */
 
 /* La estructura interna del cuerpo de este modal es más compleja */
 #weekly-details-modal .modal-body {

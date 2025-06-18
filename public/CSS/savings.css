@@ -4,7 +4,7 @@
 
 .savings-view {
     display: none;
-    padding: 100px 2rem 2rem;
+    padding: 2rem 2rem 2rem;
     animation: fadeIn 0.5s ease-in-out;
 }
 
@@ -19,7 +19,8 @@
 }
 
 .savings-main-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
 }

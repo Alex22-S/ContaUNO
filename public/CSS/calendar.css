@@ -2,7 +2,7 @@
 
 .calendar-view {
     display: none; /* Oculto por defecto */
-    padding: 100px 2rem 2rem;
+    padding: 2rem 2rem 2rem;
     max-width: 1400px;
     margin: 0 auto;
     animation: fadeIn 0.5s ease-out;
@@ -16,9 +16,9 @@
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 20px;
-    padding: 2rem;
+    padding: 2rem 2rem 2rem;
     backdrop-filter: blur(20px);
-    box-shadow: var(--card-hover-shadow);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.081);
 }
 
 .calendar-header {
@@ -33,7 +33,7 @@
 .calendar-main-title {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #313944;
     margin: 0;
     flex-grow: 1;
 }
@@ -48,12 +48,13 @@
     background: var(--input-bg);
     border: 1px solid var(--input-border);
     color: var(--text-primary);
-    padding: 0.8rem 1rem;
+    padding: 10px;
     border-radius: 10px;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
     min-width: 120px;
+    height: 44px; /* Altura consistente */
 }
 
 .calendar-controls select option {
@@ -97,11 +98,11 @@ body.light-mode .calendar-controls select option {
 .calendar-day-header {
     text-align: center;
     font-weight: 700;
-    color: var(--input-focus-border);
+    color: #ffffff;
     padding: 0.75rem 0;
     font-size: 0.9rem;
     text-transform: uppercase;
-    background-color: var(--card-bg);
+    background-color: rgb(0 150 136 / 85%);
 }
 
 .calendar-day {
@@ -209,7 +210,7 @@ body.light-mode .calendar-summary {
 .summary-title {
     font-size: 1.3rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #313944;
     margin-bottom: 0.5rem;
     border-bottom: 1px solid var(--card-border);
     padding-bottom: 1rem;
@@ -254,7 +255,7 @@ body.light-mode .calendar-summary {
         flex-direction: column;
     }
     .calendar-summary {
-        order: -1; 
+        order: -1;
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: space-around;
@@ -267,28 +268,29 @@ body.light-mode .calendar-summary {
 }
 
 @media (max-width: 768px) {
-    .calendar-view { 
-        padding: 80px 1rem 1rem; 
+    .calendar-view {
+        padding: 1rem;
+        padding-top: 0;
     }
-    .calendar-container { 
-        padding: 1.5rem; 
+    .calendar-container {
+        padding: 1.5rem;
     }
-    .calendar-header { 
-        flex-direction: column; 
-        align-items: stretch; /* Estirar los elementos */
+    .calendar-header {
+        flex-direction: column;
+        align-items: stretch;
     }
-    .calendar-main-title { 
-        font-size: 1.5rem; 
-        text-align: center; 
+    .calendar-main-title {
+        font-size: 1.5rem;
+        text-align: center;
     }
-    .calendar-controls { 
-        width: 100%; 
-        justify-content: space-between; 
+    .calendar-controls {
+        width: 100%;
+        justify-content: space-between;
     }
-    .calendar-controls select { 
-        flex: 1; 
+    .calendar-controls select {
+        flex: 1;
     }
-    .calendar-day { 
+    .calendar-day {
         min-height: 90px;
     }
 }
@@ -307,53 +309,72 @@ body.light-mode .calendar-summary {
     }
 }
 
-/* === NUEVO: ESTILOS PARA SECCIÓN DE INVENTARIO EN FORMULARIO === */
+/* === NUEVO: ESTILOS PARA SECCIÓN DE INVENTARIO EN FORMULARIO (CORREGIDO) === */
 
 .inventory-item-adder {
     display: flex;
     gap: 0.75rem;
     align-items: center;
     margin-bottom: 1rem;
-    flex-wrap: wrap; /* Permite que los elementos se ajusten en móviles */
+    flex-wrap: wrap;
 }
 
+/* Regla base para todos los inputs y selects dentro del agregador */
 .inventory-item-adder .inventory-input {
+    /* --- Estilos Visuales (para consistencia con form.css) --- */
+    height: 44px;
+    padding: 0 14px;
     background: var(--input-bg);
     border: 1px solid var(--input-border);
+    border-radius: 10px;
     color: var(--text-primary);
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     transition: all 0.3s ease;
+    box-sizing: border-box;
+    /* --- Estilos de Layout (Flexbox) --- */
+    flex-grow: 1; /* Comportamiento por defecto: ocupar espacio disponible */
+    min-width: 100px; /* Ancho mínimo para evitar que se aplasten */
 }
 
+/* Estilo de foco para los inputs */
 .inventory-item-adder .inventory-input:focus {
     outline: none;
     border-color: var(--input-focus-border);
     box-shadow: var(--input-focus-shadow);
 }
 
-.inventory-item-adder #inventory-product-select {
-    flex-grow: 1;
-    min-width: 150px; /* Ancho mínimo para mejorar la visualización */
+/* Para que el placeholder se vea bien */
+.inventory-item-adder .inventory-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
 }
 
+/* Ancho específico para el selector de producto */
+.inventory-item-adder #inventory-product-select {
+    min-width: 150px;
+    flex-grow: 2; /* Que sea el más grande */
+}
+
+/* Ancho específico para Cantidad */
 .inventory-item-adder #inventory-quantity {
-    width: 80px;
+    flex-grow: 0.5;
+    max-width: 100px; /* Ancho máximo fijo */
     text-align: center;
 }
 
+/* Ancho específico para Precio Unit. */
 .inventory-item-adder #inventory-unit-price {
-    width: 130px;
+    flex-grow: 1;
+    min-width: 120px;
 }
 
 .inventory-item-adder .btn-add-item {
     flex-shrink: 0;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     border: none;
-    background-color: var(--primary);
+    background-color: var(--primary-color);
     color: white;
     font-size: 1.5rem;
     font-weight: bold;
@@ -362,11 +383,10 @@ body.light-mode .calendar-summary {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-bottom: 2px; /* Alineación vertical del + */
 }
 
 .inventory-item-adder .btn-add-item:hover {
-    background-color: var(--primary-light);
+    background-color: var(--primary-hover);
     transform: scale(1.1) rotate(90deg);
 }
 
@@ -387,7 +407,7 @@ body.light-mode .calendar-summary {
     background-color: rgba(0,0,0,0.1);
     border: 1px solid var(--card-border);
     border-radius: 8px;
-    flex-wrap: wrap; /* Ajuste para móviles */
+    flex-wrap: wrap;
 }
 body.light-mode .inventory-list-item {
     background-color: rgba(0,0,0,0.03);
@@ -403,7 +423,7 @@ body.light-mode .inventory-list-item {
     font-size: 0.9rem;
     white-space: nowrap;
 }
-    
+
 .inventory-list-item .item-total {
     font-weight: bold;
     min-width: 110px;
@@ -419,6 +439,7 @@ body.light-mode .inventory-list-item {
     cursor: pointer;
     transition: color 0.3s, transform 0.2s;
     line-height: 1;
+    padding: 0 0.5rem;
 }
 
 .inventory-list-item .btn-remove-item:hover {

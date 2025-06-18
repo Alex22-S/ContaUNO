@@ -1,0 +1,99 @@
+/* ================================================================= */
+/* ==== ARCHIVO DEFINITIVO Y CORREGIDO: CSS/layout.css ==== */
+/* ================================================================= */
+
+/* --- Estilos Base para la Estructura --- */
+body {
+    background-color: #F6FBFF;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* El header se define en style.css (height: 70px, position: fixed) */
+/* Estas reglas aseguran que el sidebar y el contenido principal funcionen con él. */
+
+
+/* --- El Sidebar (menú lateral) --- */
+.sidebar {
+     position: fixed;
+     /* CAMBIO CLAVE: Empieza exactamente donde termina el header (70px) */
+     top: 90px; 
+     left: 0;
+     width: 280px; /* Ancho que ya estás usando */
+     /* CAMBIO CLAVE: Su altura es el 100% de la ventana MENOS la altura del header */
+     height: calc(100vh - 90px); 
+     background-color: var(--card-bg);
+     z-index: 2000;
+     transform: translateX(0);
+     transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+     display: flex;
+     flex-direction: column;
+}
+
+/* Estado colapsado, controlado por JS al añadir/quitar la clase del body */
+/* La clase 'sidebar-closed' viene de tu script en index.html */
+body.sidebar-closed .sidebar {
+    transform: translateX(-100%); /* Lo oculta hacia la izquierda */
+}
+
+
+/* --- Contenido Principal de la Página --- */
+.page-content {
+    /* Margen izquierdo inicial para dar espacio al sidebar */
+    margin-left: 280px;
+    transition: margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    min-height: 100vh;
+    background-color: var(--view-bg-color);
+    /* CAMBIO CLAVE: Padding superior para que el contenido no quede debajo del header fijo */
+    padding-top: 90px;
+}
+
+/* Cuando el sidebar está cerrado, el contenido ocupa todo el ancho */
+body.sidebar-closed .page-content {
+    margin-left: 0;
+}
+
+
+/* --- Estilos internos del Sidebar (Navegación) --- */
+.sidebar-nav {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-nav li a:hover {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border-left-color: var(--primary-color);
+}
+
+
+/* --- Contenedores de Vistas y Animaciones --- */
+.view-container {
+    display: none; /* Ocultamos todas las vistas por defecto */
+    animation: fadeIn 0.5s ease;
+}
+
+.view-container.active {
+    display: block; /* Mostramos solo la vista activa */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

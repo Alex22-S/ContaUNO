@@ -1,16 +1,15 @@
 /* === NUEVO: Estilos para el layout de la vista de inventario === */
 
 .inventory-view {
-    padding: 2rem;
+    /* CORRECCIÓN: Se elimina el padding para que lo controle el contenedor principal */
+    padding: 2rem 1rem;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-.inventory-container {
-    background-color: var(--background-color);
-    padding: 2rem;
-    border-radius: 12px;
-}
+/* AHORA, el .inventory-container usa la clase .main-view-container del HTML.
+   Se eliminaron los estilos de background, padding y border-radius de aquí
+   para evitar duplicidad. */
 
 .inventory-header {
     border-bottom: 1px solid var(--card-border);
@@ -19,7 +18,8 @@
 }
 
 .inventory-main-title {
-    font-size: 1.8rem;
+    font-size: 2rem;
+    font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
 }
@@ -41,11 +41,13 @@
     padding: 1.5rem;
     border-radius: 8px;
     border: 1px solid var(--card-border);
+    box-shadow: var(--card-hover-shadow);
 }
 
 .product-list-container {
     max-height: 60vh;
     overflow-y: auto;
+    box-shadow: var(--card-hover-shadow);
 }
 
 /* === NUEVO: Estilos para el botón de historial === */
